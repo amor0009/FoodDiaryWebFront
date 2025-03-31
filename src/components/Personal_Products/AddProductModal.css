@@ -1,0 +1,188 @@
+/* ProductModal.css */
+.personal-product-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+    overflow: hidden; /* Убираем скролл на overlay */
+  }
+  
+  .personal-product-modal-container {
+    background-color: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px; /* Уменьшаем ширину модального окна */
+    max-height: 90vh;
+    overflow-y: auto; /* Включаем скролл внутри контейнера */
+    padding: 20px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: modalFadeIn 0.3s ease-out;
+  }
+  
+  /* Скрываем скроллбар */
+  .personal-product-modal-container::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .personal-product-modal-container {
+    -ms-overflow-style: none; /* IE и Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .personal-product-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .personal-product-modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #4a148c;
+  }
+  
+  .personal-product-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    transition: color 0.2s ease;
+  }
+  
+  .personal-product-modal-close:hover {
+    color: #111827;
+  }
+  
+  .personal-product-modal-form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .personal-product-modal-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #4b5563;
+  }
+  
+  .personal-product-modal-form-group input,
+  .personal-product-modal-form-group textarea {
+    width: 90%; /* Уменьшаем ширину input и textarea */
+    padding: 0.625rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background-color: #f9fafb;
+    color: #111827;
+    resize: none; /* Отключаем изменение размера textarea */
+  }
+  
+  .personal-product-modal-form-group textarea {
+    min-height: 100px; /* Минимальная высота textarea */
+  }
+  
+  .personal-product-modal-form-group input:focus,
+  .personal-product-modal-form-group textarea:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    outline: none;
+  }
+  
+  .personal-product-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .personal-product-modal-footer button {
+    padding: 0.625rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+  
+  .personal-product-modal-footer button:first-child {
+    background-color: white;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+  }
+  
+  .personal-product-modal-footer button:first-child:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+  }
+  
+  .personal-product-modal-footer button:last-child {
+    background-color: #7c3aed;
+    color: white;
+    border: none;
+  }
+  
+  .personal-product-modal-footer button:last-child:hover {
+    background-color: #6d28d9;
+  }
+
+  /* Загрузка фото */
+.photo-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.photo-upload-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+  color: black;
+  background-color: #dfdfdf;
+  cursor: pointer;
+  width: 100%;
+  max-width: 340px;
+  transition: all 0.2s ease;
+}
+
+.photo-upload-button:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.photo-upload-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.upload-icon {
+  color: black;
+}
+
+.photo-upload-note {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}

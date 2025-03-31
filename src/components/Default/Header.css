@@ -1,0 +1,130 @@
+/* Красивый хедер с изображением */
+header.header-banner {
+  margin: 0;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 85px;
+  background-image: url("https://images.unsplash.com/photo-1490645935967-10de6ba17061?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80");
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.5s ease; /* Плавное увеличение с продолжительностью 0.3 секунд */
+}
+
+header.header-banner:hover {
+  transform: scale(1.02); /* Увеличиваем на 5% */
+}
+
+.header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(106, 17, 203, 0.8));
+  display: flex;
+  align-items: center; /* Центрируем по вертикали */
+}
+
+.header-content {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.profile-avatar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar-container {
+  position: relative;
+}
+
+.avatar-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  object-fit: cover;
+  transition: all 0.3s ease;
+  background-image: url("https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.avatar-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.avatar-upload-button {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #7c3aed;
+  color: white;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.avatar-upload-button:hover {
+  background-color: #6d28d9;
+  transform: scale(1.1);
+}
+
+.avatar-upload-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loading-spinner-tiny {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 2px solid white;
+  width: 12px;
+  height: 12px;
+  animation: spin 1s linear infinite;
+}
+
+.profile-name {
+  color: white;
+}
+
+.profile-name h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.profile-aim {
+  margin: 5px 0 0 0;
+  font-size: 16px;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.aim-icon {
+  color: #ffcc00;
+}

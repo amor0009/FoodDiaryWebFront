@@ -1,0 +1,65 @@
+/* Устанавливаем фон на всю страницу */
+body {
+  font-family: 'Arial', sans-serif;
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Контейнер с контентом */
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;  
+  text-align: center;
+  height: 740px;
+  width: 100vw;
+  background-color: #7d02f8;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  text-align: center;
+  width: 100%;
+}
+
+.advantages {
+  display: flex;
+  width: 100%;
+}
+
+.works {
+  display: flex;
+  width: 100%;
+}
+
+.calculate-nutrients {
+  display: flex;
+  width: 100%
+}
+
+p {
+  color: #f5f4f2df;
+  font-size: 27px;
+  margin-top: 0px;
+  text-align: center;
+}
+
+/* Для кнопки или других элементов формы */
+button {
+  background-color: #f5f4f2df; /* Оранжевый */
+  color: #4e18f2;
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #b1b1b1; /* Более темный оранжевый */
+}

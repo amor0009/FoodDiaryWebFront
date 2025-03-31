@@ -1,0 +1,38 @@
+.main-message {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Центрируем контент */
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    min-height: 80vh; /* Растягиваем фон на весь экран */
+    margin-top: 0px;
+    background-color: #7d02f8;
+}
+
+
+.h1 {
+    font-size: 100px;
+    color: #f5f4f2df;
+    text-align: center;
+}
+
+.p {
+    font-size: 30px;
+    color: #f5f4f2df;
+    text-align: center;
+}
+
+.try-btn {
+    background-color: #f5f4f2df;
+    color: #4e18f2;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+  
+  .try-btn:hover {
+    background-color: #b1b1b1;
+  }

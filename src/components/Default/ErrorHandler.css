@@ -1,0 +1,43 @@
+.error-handler-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10002;
+}
+
+.error-handler-container {
+  background-color: #ffffff; /* Белый фон, как в .result-container */
+  border-radius: 15px; /* Скругление углов, как в .result-container */
+  padding: 30px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Тень, как в .result-container */
+  text-align: center;
+  max-width: 400px; /* Уменьшенная ширина */
+  width: 90%;
+}
+
+.error-handler-message {
+  font-size: 18px; /* Размер шрифта, как в .result-container p */
+  color: #000000df; /* Цвет текста, как в .result-container p */
+  margin-bottom: 30px;
+}
+
+.error-handler-close-button {
+  padding: 10px 20px;
+  background-color: #f9a826; /* Цвет кнопки, как в .submit-btn */
+  color: white;
+  border: none;
+  border-radius: 8px; /* Скругление углов, как в .submit-btn */
+  cursor: pointer;
+  font-size: 16px; /* Размер шрифта, как в .submit-btn */
+  transition: background-color 0.3s ease;
+}
+
+.error-handler-close-button:hover {
+  background-color: #ff7e00; /* Цвет при наведении, как в .submit-btn:hover */
+}

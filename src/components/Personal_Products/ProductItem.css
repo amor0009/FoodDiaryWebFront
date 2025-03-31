@@ -1,0 +1,84 @@
+.product-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 250px; /* Уменьшаем ширину карточки */
+}
+
+.product-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.product-image {
+  width: 100%;
+  height: 150px; /* Фиксированная высота для фото и заглушки */
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5; /* Фон для заглушки */
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Чтобы фото заполняло весь блок */
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+}
+
+.product-image img:hover {
+  transform: scale(1.05);
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%; /* Занимает всю высоту блока .product-image */
+  color: #ccc; /* Цвет текста и иконки */
+}
+
+.image-placeholder p {
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.product-info {
+  width: 100%;
+}
+
+.product-info h3 {
+  margin: 0 0 12px;
+  font-size: 1.25rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.product-info p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* Убираем линию между углеводами и описанием */
+.product-info .description {
+  max-height: 100px;
+  overflow-y: auto;
+  margin-top: 8px;
+  padding: 4px;
+}

@@ -1,0 +1,161 @@
+.personal-meals-page {
+    height: 100vh;
+    width: 100vw;
+    overflow: auto;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: #222;
+}
+
+.personal-meals-content {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding-top: 100px;
+    padding-bottom: 20px;
+}
+
+.personal-meals-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 0 20px;
+}
+
+.personal-meals-header h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    color: white;
+}
+
+.date-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.date-picker label {
+    font-size: 1rem;
+    color: white;
+}
+
+.date-picker input {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
+}
+
+.personal-meals-add-meal-button {
+    padding: 10px 20px;
+    background-color: #7c3aed;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.personal-meals-add-meal-button:hover {
+    background-color: #6d28d9;
+}
+
+.personal-meals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0 20px;
+    max-width: 800px; /* Ограничиваем ширину списка */
+    margin: 0 auto; /* Центрируем список */
+    align-items: stretch
+}
+
+.personal-meals-add-meal-button:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.personal-meals-add-meal-button:disabled:hover {
+    background-color: #9ca3af;
+}
+
+@media (max-width: 768px) {
+    .personal-meals-list {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+
+    .meal-modal-container {
+        width: 95%;
+    }
+}
+
+/* Состояния полной загрузки и ошибки */
+.full-page-loading,
+.full-page-error {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 1000;
+}
+
+/* Сообщение при отсутствии данных */
+.no-meals-message {
+  text-align: center;
+  padding: 150px;
+  font-size: 1.2rem;
+  color: white;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+  .personal-meals-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .date-picker {
+    margin: 15px 0;
+  }
+}
+
+/* Стили для date-picker */
+.date-picker {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.date-picker label {
+    font-size: 1rem;
+    color: white;
+}
+
+.date-picker input {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: black; /* Черный цвет текста по умолчанию */
+    cursor: pointer;
+}
+
+/* Стиль для дат вне диапазона */
+.date-picker input.out-of-range {
+    color: #9ca3af; /* Серый цвет текста */
+}

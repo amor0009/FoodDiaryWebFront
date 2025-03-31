@@ -1,0 +1,66 @@
+/* Контейнер секции */
+.problems-solutions {
+    background-color: #dfdfdf;
+    margin-top: 63px;
+    width: 100%;
+    text-align: center;
+  }
+  
+  /* Заголовок секции */
+  .section-title-problems-and-solutions {
+    font-size: 30px;
+    font-weight: bold;
+    color: #000000df;
+    text-align: center;
+    display: inline-block;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+  }
+  
+  /* Основной контейнер проблем и решений */
+  .problem-solution-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 100px;
+    max-width: 1200px;
+    margin-top: 10px;
+    margin-bottom: 40px;
+    margin-left: 150px;
+    margin-right: 40px;
+  }
+  
+ /* Колонки */
+.problems, .solutions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Выровнять весь текст слева */
+    border-radius: 10px;
+  }
+  
+  /* Блоки с проблемами и решениями */
+  .problem, .solution {
+    display: flex;  
+    align-items: flex-start; /* Выровнять иконку и текст по левому краю */
+    text-align: left; /* Дополнительно для надёжности */
+    font-size: 16px;
+    gap: 7px;
+    color: #000000df;
+    padding: 7px;
+    margin-top: 7px;
+    border-radius: 5px;
+  }  
+  
+  /* Заголовки проблем и решений */
+  h3 {
+    font-size: 24px;
+    color: #000000df;   
+    border-radius: 5px;
+  }
+  
+  /* Иконки */
+  .icon-problems-solutions {
+    font-size: 18px;
+    text-align: left;
+  }
+  

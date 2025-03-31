@@ -1,0 +1,98 @@
+.meal-item {
+    background-color: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+}
+
+.meal-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.meal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.meal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #4a148c;
+    font-weight: 600;
+}
+
+.meal-total-values {
+    display: flex;
+    gap: 1rem;
+    font-weight: 500;
+    color: #555;
+}
+
+.nutrition-table {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 2fr repeat(5, 1fr);
+    gap: 0.5rem 1rem; /* Увеличил горизонтальный отступ */
+    font-size: 0.9rem;
+}
+
+.table-header, .table-row, .table-footer {
+    display: contents;
+}
+
+.table-header span {
+    font-weight: 600;
+    padding: 0.5rem 0;
+    color: #4a148c;
+    text-align: center;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.table-header span:first-child,
+.table-row span:first-child,
+.table-footer span:first-child {
+    text-align: left;
+}
+
+.table-row span {
+    padding: 0.3rem 0;
+    color: #555;
+    text-align: center;
+    /* Убрал border-bottom */
+}
+
+.table-footer span {
+    padding: 0.5rem 0;
+    color: #222;
+    font-weight: 600;
+    border-top: 2px solid #e0e0e0;
+    text-align: center;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .nutrition-table {
+        grid-template-columns: 1.5fr repeat(5, 1fr);
+        font-size: 0.8rem;
+        gap: 0.3rem 0.8rem;
+    }
+    
+    .meal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .meal-total-values {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
