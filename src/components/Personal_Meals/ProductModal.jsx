@@ -20,17 +20,11 @@ const ProductModal = ({ product, isOpen, onClose }) => {
         setError(null);
         
         if (product.has_picture) {
-          const token = localStorage.getItem("access_token");
-          if (!token) {
-            throw new Error("Требуется авторизация для просмотра изображения");
-          }
-
           const response = await fetch(
-            `${API_BASE_URL}/product/product-picture/${product.id}`,
+            `${API_BASE_URL}/products/product-picture/${product.id}`,
             {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+              method: "GET",
+              credentials: 'include',
             }
           );
 

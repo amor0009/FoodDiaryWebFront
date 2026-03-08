@@ -42,18 +42,9 @@ export default function Profile() {
   // Fetch user profile data
   const fetchUserProfile = async () => {
     try {
-      const token = localStorage.getItem("access_token")
-      if (!token) {
-        setError("Требуется авторизация")
-        setLoading(false)
-        return
-      }
-
-      const response = await fetch(`${API_BASE_URL}/user/me`, {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -93,12 +84,9 @@ export default function Profile() {
   // Получение фото профиля
   const fetchProfilePicture = async () => {
     try {
-      const token = localStorage.getItem("access_token")
-      const response = await fetch(`${API_BASE_URL}/user/profile-picture`, {
+      const response = await fetch(`${API_BASE_URL}/users/profile-picture`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
       })
 
       if (response.ok) {
@@ -126,15 +114,12 @@ export default function Profile() {
   
     try {
       setUploadingPhoto(true);
-      const token = localStorage.getItem("access_token");
       const formData = new FormData();
       formData.append("file", file);
   
-      const response = await fetch(`${API_BASE_URL}/user/upload-profile-picture`, {
+      const response = await fetch(`${API_BASE_URL}/users/upload-profile-picture`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
         body: formData,
       });
   
@@ -194,7 +179,6 @@ export default function Profile() {
   const saveProfile = async () => {
     try {
       setSaving(true)
-      const token = localStorage.getItem("access_token")
 
       // Подготавливаем данные для отправки
       const dataToSend = {
@@ -216,12 +200,12 @@ export default function Profile() {
         }
       })
 
-      const response = await fetch(`${API_BASE_URL}/user/me`, {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: 'include',
         body: JSON.stringify(dataToSend),
       })
 
@@ -266,17 +250,13 @@ export default function Profile() {
   // Logout handler
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem("access_token")
 
       // Вызываем API для выхода
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
       })
 
-      localStorage.removeItem("access_token")
       toast.toast({
         title: "Выход выполнен",
         description: "Вы успешно вышли из аккаунта",
@@ -286,7 +266,6 @@ export default function Profile() {
       window.location.href = "/login"
     } catch (error) {
       console.error("Ошибка при выходе:", error)
-      localStorage.removeItem("access_token")
       window.location.href = "/login"
     }
   }

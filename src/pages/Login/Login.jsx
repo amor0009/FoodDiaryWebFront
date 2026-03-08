@@ -17,70 +17,60 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Сбрасываем ошибку перед отправкой
+    setError("");
 
-    // Проверка на пустые поля
     if (!login || !password) {
       setError("Пожалуйста, заполните все поля.");
       return;
     }
 
-    // Проверка на русские символы в логине
+    // Проверка на русские символы (оставьте как есть)
     const russianRegex = /[а-яА-Я]/;
-    if (russianRegex.test(login)) {
-      setError("Логин не должен содержать русские символы.");
+    if (russianRegex.test(login) || russianRegex.test(password)) {
+      setError("Логин и пароль не должны содержать русские символы.");
       return;
     }
 
-    if (russianRegex.test(password)) {
-      setError("Пароль не должен содержать русские символы.");
-      return;
-    }
-
-    const userData = new URLSearchParams({
+    // Отправляем данные как JSON
+    const userData = {
       username: login,
       password: password,
-    });
+    };
 
     try {
-      setIsLoading(true); // Включаем загрузку
+      setIsLoading(true);
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Type": "application/json", // Указываем тип JSON
         },
-        body: userData.toString(),
+        credentials: "include",
+        body: JSON.stringify(userData), // Преобразуем объект в JSON-строку
       });
 
-      // Проверяем статус ответа
       if (!response.ok) {
-        // Если статус 401 (Unauthorized), считаем, что это "неверный логин или пароль"
         if (response.status === 401) {
           throw new Error("Неверный логин или пароль.");
-        } else {
-          // Для других ошибок читаем тело ответа
+        } else if (response.status === 422) {
+          // Детальная обработка ошибки валидации
           const errorData = await response.json();
-          throw new Error(errorData.detail || "Ошибка при авторизации. Попробуйте снова.");
+          throw new Error(errorData.detail || "Ошибка валидации данных.");
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || "Ошибка при авторизации.");
         }
       }
 
-      // Читаем тело ответа только один раз
       const data = await response.json();
-      localStorage.setItem("access_token", data.access_token);
-
-      navigate("/profile"); // Перенаправление после успешного входа
+      navigate("/profile");
     } catch (err) {
-      // Обработка ошибки "Failed to fetch"
       if (err.message === "Failed to fetch") {
         setError("Ошибка сети. Проверьте подключение к интернету.");
-      } else if (err.message.includes("Failed to execute 'json' on 'Response'")) {
-        // Если ошибка связана с чтением тела ответа, считаем, что это "неверный логин или пароль"
-        setError("Неверный логин или пароль.");
       } else {
-        setError(err.message); // Устанавливаем сообщение об ошибке
+        setError(err.message);
       }
     } finally {
-      setIsLoading(false); // Выключаем загрузку
+      setIsLoading(false);
     }
   };
 

@@ -27,15 +27,11 @@ const MealModal = ({ isOpen, onClose, meal, onSave }) => {
     }
     setIsSearching(true);
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Требуется авторизация. Пожалуйста, войдите снова.");
-      }
-
       const response = await fetch(
-        `${API_BASE_URL}/product/search?query=${encodeURIComponent(query)}`,
+        `${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          method: "GET",
+          credentials: 'include',
         }
       );
       
@@ -115,23 +111,15 @@ const MealModal = ({ isOpen, onClose, meal, onSave }) => {
     try {
       setIsSaving(true);
       setError(null);
-      
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Сессия истекла. Пожалуйста, войдите снова.");
-      }
 
       const url = meal?.id 
-        ? `${API_BASE_URL}/meal/update/${meal.id}`
-        : `${API_BASE_URL}/meal/add`;
+        ? `${API_BASE_URL}/meals/update/${meal.id}`
+        : `${API_BASE_URL}/meals/add`;
       const method = meal?.id ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        credentials: 'include',
         body: JSON.stringify(mealData),
       });
 

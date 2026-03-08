@@ -9,7 +9,6 @@ import MealItem from "../../components/Personal_Meals/MealItem";
 import ErrorHandler from "../../components/Default/ErrorHandler";
 import LoadingSpinner from "../../components/Default/LoadingSpinner";
 import ErrorWithRetry from "../../components/Default/ErrorWithRetry";
-import { checkAuth } from "../../utils/auth";
 import { API_BASE_URL } from '../../config';
 import "./PersonalMeals.css";
 
@@ -34,12 +33,6 @@ export default function PersonalMeals() {
   };
 
   useEffect(() => {
-    if (!checkAuth()) {
-      setError("Неавторизованный доступ. Пожалуйста, войдите в систему.");
-      setLoading(false);
-      return;
-    }
-
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -74,12 +67,9 @@ export default function PersonalMeals() {
 
   const fetchUserProfile = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) throw new Error("Токен авторизации отсутствует");
-
-      const response = await fetch(`${API_BASE_URL}/user/me`, {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
         method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -100,9 +90,8 @@ export default function PersonalMeals() {
 
   const fetchProfilePicture = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_BASE_URL}/user/profile-picture`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await fetch(`${API_BASE_URL}/users/profile-picture`, {
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -118,12 +107,9 @@ export default function PersonalMeals() {
 
   const fetchMeals = async (date) => {
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_BASE_URL}/meal/user_meals_with_products/info/${date}`, {
+      const response = await fetch(`${API_BASE_URL}/meals/date/${date}`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
       });
   
       if (!response.ok) {
@@ -198,12 +184,9 @@ export default function PersonalMeals() {
   const handleDelete = async (mealId) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_BASE_URL}/meal/${mealId}`, {
+      const response = await fetch(`${API_BASE_URL}/meals/${mealId}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
       });
   
       if (!response.ok) {
@@ -225,12 +208,10 @@ export default function PersonalMeals() {
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem("access_token");
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
-      localStorage.removeItem("access_token");
       toast.toast({
         title: "Выход выполнен",
         description: "Вы успешно вышли из аккаунта",
@@ -238,7 +219,6 @@ export default function PersonalMeals() {
       window.location.href = "/login";
     } catch (error) {
       console.error("Ошибка при выходе:", error);
-      localStorage.removeItem("access_token");
       window.location.href = "/login";
     }
   };

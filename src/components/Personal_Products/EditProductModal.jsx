@@ -37,14 +37,9 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     try {
       setUploadingPhoto(true);
       setError(null);
-      
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Требуется авторизация. Пожалуйста, войдите снова.");
-      }
 
       const response = await fetch(
-        `${API_BASE_URL}/product/upload-product-picture/${product.id}`,
+        `${API_BASE_URL}/products/upload-product-picture/${product.id}`,
         {
           method: "POST",
           headers: {
@@ -107,17 +102,12 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Требуется авторизация. Пожалуйста, войдите снова.");
-      }
-
-      const response = await fetch(`${API_BASE_URL}/product/update/${product.id}`, {
+      const response = await fetch(`${API_BASE_URL}/products/${product.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: 'include',
         body: JSON.stringify(productData),
       });
 
@@ -156,16 +146,9 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       setDeleting(true);
       setError(null);
 
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Требуется авторизация. Пожалуйста, войдите снова.");
-      }
-
-      const response = await fetch(`${API_BASE_URL}/product/delete/${product.id}`, {
+      const response = await fetch(`${API_BASE_URL}/products/${product.id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -174,7 +157,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       }
 
       // Проверяем, что продукт действительно удален
-      const checkResponse = await fetch(`${API_BASE_URL}/product/my-products`, {
+      const checkResponse = await fetch(`${API_BASE_URL}/products/personal`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

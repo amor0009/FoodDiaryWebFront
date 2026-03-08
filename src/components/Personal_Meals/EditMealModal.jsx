@@ -30,16 +30,12 @@ const EditMealModal = ({ isOpen, onClose, meal, onUpdate, onDelete }) => {
       setSearchResults([]);
       return;
     }
-    setIsSearching(true);
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Требуется авторизация. Пожалуйста, войдите снова.");
-      }
-
       const response = await fetch(
-        `${API_BASE_URL}/product/search?query=${encodeURIComponent(query)}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        `${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`,
+        { method: "GET",
+          credentials: 'include', 
+        }
       );
       
       if (!response.ok) {
@@ -59,7 +55,6 @@ const EditMealModal = ({ isOpen, onClose, meal, onUpdate, onDelete }) => {
       );
       setSearchResults([]);
     } finally {
-      setIsSearching(false);
     }
   };
 
@@ -118,17 +113,9 @@ const EditMealModal = ({ isOpen, onClose, meal, onUpdate, onDelete }) => {
       setIsSaving(true);
       setError(null);
       
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Сессия истекла. Пожалуйста, войдите снова.");
-      }
-
-      const response = await fetch(`${API_BASE_URL}/meal/${meal.id}`, {
+      const response = await fetch(`${API_BASE_URL}/meals/${meal.id}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
+        credentials: 'include',
         body: JSON.stringify(mealData)
       });
       
@@ -162,11 +149,6 @@ const EditMealModal = ({ isOpen, onClose, meal, onUpdate, onDelete }) => {
       setIsDeleting(true);
       setError(null);
       
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Требуется авторизация для удаления.");
-      }
-
       await onDelete(meal.id);
       onClose();
     } catch (error) {

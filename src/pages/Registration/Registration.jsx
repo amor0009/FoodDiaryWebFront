@@ -83,9 +83,6 @@ export default function Registration() {
         }
       }
 
-      const data = await response.json();
-      localStorage.setItem("access_token", data.access_token);
-
       navigate("/login"); // Перенаправление после успешной регистрации
     } catch (err) {
       // Обработка ошибки "Failed to fetch"

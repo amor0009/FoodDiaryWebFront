@@ -8,7 +8,6 @@ import EditProductModal from "../../components/Personal_Products/EditProductModa
 import ProductItem from "../../components/Personal_Products/ProductItem";
 import ErrorWithRetry from "../../components/Default/ErrorWithRetry";
 import LoadingSpinner from "../../components/Default/LoadingSpinner";
-import { checkAuth } from "../../utils/auth";
 import "./PersonalProducts.css";
 import { API_BASE_URL } from '../../config';
 
@@ -24,12 +23,6 @@ export default function PersonalProducts() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!checkAuth()) {
-      setError("Неавторизованный доступ. Пожалуйста, войдите в систему.");
-      setLoading(false);
-      return;
-    }
-
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -60,13 +53,8 @@ export default function PersonalProducts() {
 
   const fetchUserProfile = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Требуется авторизация");
-      }
-
-      const response = await fetch(`${API_BASE_URL}/user/me`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -87,9 +75,8 @@ export default function PersonalProducts() {
 
   const fetchProfilePicture = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_BASE_URL}/user/profile-picture`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await fetch(`${API_BASE_URL}/users/profile-picture`, {
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -105,13 +92,8 @@ export default function PersonalProducts() {
 
   const fetchProducts = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Требуется авторизация");
-      }
-
-      const response = await fetch(`${API_BASE_URL}/product/my-products`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await fetch(`${API_BASE_URL}/products/personal`, {
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -127,8 +109,8 @@ export default function PersonalProducts() {
 
           try {
             const imageResponse = await fetch(
-              `${API_BASE_URL}/product/product-picture/${product.id}`,
-              { headers: { Authorization: `Bearer ${token}` } }
+              `${API_BASE_URL}/products/product-picture/${product.id}`,
+              { credentials: 'include',}
             );
 
             if (imageResponse.ok) {
@@ -163,10 +145,9 @@ export default function PersonalProducts() {
   const handleDelete = async (productId) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_BASE_URL}/product/delete/${productId}`, {
+      const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -190,16 +171,13 @@ export default function PersonalProducts() {
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem("access_token");
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
-      localStorage.removeItem("access_token");
       window.location.href = "/login";
     } catch (error) {
       console.error("Ошибка при выходе:", error);
-      localStorage.removeItem("access_token");
       window.location.href = "/login";
     }
   };

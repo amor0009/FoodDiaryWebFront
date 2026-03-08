@@ -46,17 +46,12 @@ export default function AddProductModal({ isOpen, onClose, product, onSave }) {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("Требуется авторизация. Пожалуйста, войдите снова.");
-      }
-
-      const response = await fetch(`${API_BASE_URL}/product/product`, {
+      const response = await fetch(`${API_BASE_URL}/products/product`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: 'include',
         body: JSON.stringify(productData),
       });
 

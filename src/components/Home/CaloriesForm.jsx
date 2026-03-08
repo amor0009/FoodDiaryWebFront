@@ -36,9 +36,8 @@ export default function CaloriesForm() {
 
     try {
       setLoading(true); // Начинаем загрузку
-      const token = localStorage.getItem("access_token");
 
-      const response = await fetch(`${API_BASE_URL}/user/calculate_nutrients`, {
+      const response = await fetch(`${API_BASE_URL}/users/calculate-nutrients`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

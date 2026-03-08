@@ -6,7 +6,6 @@ import Menu from "../../components/Default/Menu";
 import Header from "../../components/Default/Header";
 import ErrorHandler from "../../components/Default/ErrorHandler";
 import ErrorWithRetry from "../../components/Default/ErrorWithRetry"; // Импортируем компонент для повторной попытки
-import { checkAuth } from "../../utils/auth";
 import LoadingSpinner from "../../components/Default/LoadingSpinner";
 import "./WeightStatistic.css";
 import { API_BASE_URL } from '../../config';
@@ -45,7 +44,6 @@ export default function WeightStatistic() {
   const saveProfile = async () => {
     try {
       setSaving(true);
-      const token = localStorage.getItem("access_token");
       const dataToSend = {
         firstname: editedData.firstname,
         lastname: editedData.lastname,
@@ -65,12 +63,12 @@ export default function WeightStatistic() {
         }
       });
   
-      const response = await fetch(`${API_BASE_URL}/user/me`, {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: 'include',
         body: JSON.stringify(dataToSend),
       });
   
@@ -100,20 +98,13 @@ export default function WeightStatistic() {
 
   // Загрузка данных профиля
   const fetchUserProfile = async () => {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        setError("Требуется авторизация");
-        setLoading(false);
-        return;
-      }
-  
+    try {  
       const [userResponse, weightResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/user/me`, {
-          headers: { Authorization: `Bearer ${token}` },
+        fetch(`${API_BASE_URL}/users/me`, {
+          credentials: 'include',
         }),
-        fetch(`${API_BASE_URL}/user_weight/history/me`, {
-          headers: { Authorization: `Bearer ${token}` },
+        fetch(`${API_BASE_URL}/user-weight/`, {
+          credentials: 'include',
         }),
       ]);
   
@@ -148,9 +139,8 @@ export default function WeightStatistic() {
   // Загрузка фото профиля
   const fetchProfilePicture = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_BASE_URL}/user/profile-picture`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await fetch(`${API_BASE_URL}/users/profile-picture`, {
+        credentials: 'include',
       });
   
       if (!response.ok) {
@@ -174,12 +164,10 @@ export default function WeightStatistic() {
   // Выход из системы
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem("access_token");
       await fetch("http://localhost:8000/auth/logout", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
-      localStorage.removeItem("access_token");
       showToast("Выход выполнен", "Вы успешно вышли из системы");
       window.location.href = "/login";
     } catch (error) {
@@ -189,7 +177,6 @@ export default function WeightStatistic() {
       } else {
         setError("Ошибка при выходе");
       }
-      localStorage.removeItem("access_token");
       window.location.href = "/login";
     }
   };
@@ -217,12 +204,6 @@ export default function WeightStatistic() {
   };
 
   useEffect(() => {
-    if (!checkAuth()) {
-      setError("Неавторизованный доступ");
-      setLoading(false);
-      return;
-    }
-
     const fetchData = async () => {
       try {
         await fetchUserProfile();
