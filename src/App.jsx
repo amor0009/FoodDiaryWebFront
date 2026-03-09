@@ -7,6 +7,10 @@ import Profile from "./pages/Profile/Profile";
 import WeightStatistic from "./pages/Weight_Statistic/WeightStatistic";
 import PersonalProducts from "./pages/Personal_Products/PersonalProducts";
 import PersonalMeals from "./pages/Diary/PersonalMeals";
+import Settings from "./pages/Settings/Settings";
+import Family from "./pages/Family/Family";
+import FamilyMemberProfile from "./pages/FamilyMemberProfile/FamilyMemberProfile";
+
 
 export default function App() {
   return (
@@ -19,6 +23,9 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/weight-statistic" element={<WeightStatistic />} />
         <Route path="/my-products" element={<PersonalProducts />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/families" element={<Family />} />
+        <Route path="/family/member/:userId" element={<FamilyMemberProfile />} />     
       </Routes>
     </Router>
   );

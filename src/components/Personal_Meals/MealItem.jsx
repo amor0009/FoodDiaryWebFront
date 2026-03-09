@@ -16,6 +16,11 @@ const MealItem = ({ meal, onEdit, onDelete }) => {
     setIsProductModalOpen(true);
   };
 
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    onEdit(meal);
+  };
+
   const handleDelete = async (e) => {
     e.stopPropagation();
     if (!window.confirm(`Удалить приём пищи "${meal.name}"?`)) return;
@@ -38,10 +43,34 @@ const MealItem = ({ meal, onEdit, onDelete }) => {
 
   return (
     <>
-      <div className="meal-item" onClick={() => onEdit(meal)}>
+      <div className="meal-item">
         <div className="meal-header">
-          <h3>{meal.name}</h3>
-          <div className="meal-total-values"></div>
+          <div className="meal-title">
+            <h3>{meal.name}</h3>
+            <span className="meal-time">{meal.time || "—"}</span>
+          </div>
+          <div className="meal-summary">
+            <span className="kcal">{Math.round(meal.calories)} ккал</span>
+            <span className="macros">
+              Б {meal.proteins.toFixed(1)} · Ж {meal.fats.toFixed(1)} · У {meal.carbohydrates.toFixed(1)}
+            </span>
+          </div>
+          <div className="meal-actions">
+            <button
+              className="action-button edit"
+              onClick={handleEdit}
+              disabled={isDeleting}
+            >
+              Редактировать
+            </button>
+            <button
+              className="action-button delete"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? <LoadingSpinner size="small" /> : "Удалить"}
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -51,18 +80,20 @@ const MealItem = ({ meal, onEdit, onDelete }) => {
         )}
 
         <div className="nutrition-table">
-          <div className="table-header">
+          {/* Заголовки таблицы – отдельный блок с общей линией */}
+          <div className="nutrition-table-header">
             <span>Продукт</span>
-            <span>Вес</span>
-            <span>Калории</span>
-            <span>Белки</span>
-            <span>Жиры</span>
-            <span>Углеводы</span>
+            <span>Вес, г</span>
+            <span>Ккал</span>
+            <span>Б</span>
+            <span>Ж</span>
+            <span>У</span>
           </div>
 
+          {/* Строки продуктов */}
           {meal.products.map((product) => (
-            <div 
-              className="table-row" 
+            <div
+              className="table-row"
               key={product.id}
               onClick={(e) => {
                 e.stopPropagation();
@@ -70,7 +101,7 @@ const MealItem = ({ meal, onEdit, onDelete }) => {
               }}
             >
               <span>{product.name}</span>
-              <span>{product.weight} г</span>
+              <span>{product.weight}</span>
               <span>{Math.round(product.calories)}</span>
               <span>{product.proteins.toFixed(1)}</span>
               <span>{product.fats.toFixed(1)}</span>
@@ -78,8 +109,9 @@ const MealItem = ({ meal, onEdit, onDelete }) => {
             </div>
           ))}
 
+          {/* Итоговая строка */}
           <div className="table-footer">
-            <span>Итого:</span>
+            <span>Итого</span>
             <span>{meal.weight} г</span>
             <span>{Math.round(meal.calories)}</span>
             <span>{meal.proteins.toFixed(1)}</span>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit, Book, Apple, BarChart, Settings, LogOut } from "lucide-react";
+import { Edit, Book, Apple, BarChart, Settings, LogOut, Users } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import "./Menu.css"
 
@@ -35,6 +35,10 @@ export default function Menu({ menuVisible, handleLogout }) {
           <button onClick={() => navigate("/weight-statistic")} className="menu-button-item">
             <BarChart size={18} />
             <span>Статистика веса</span>
+          </button>
+          <button onClick={() => navigate("/families")} className="menu-button-item">
+            <Users size={18} />
+            <span>Моя семья</span>
           </button>
           <button  onClick={() => navigate("/settings")} className="menu-button-item">
             <Settings size={18} />

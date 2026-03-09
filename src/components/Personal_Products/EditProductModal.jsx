@@ -1,81 +1,75 @@
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Upload, Trash2 } from "lucide-react";
 import ErrorHandler from "../Default/ErrorHandler";
 import LoadingSpinner from "../Default/LoadingSpinner";
 import { API_BASE_URL } from '../../config';
-import "./EditProductModal.css";
+import "./AddProductModal.css";
 
 export default function EditProductModal({ isOpen, onClose, product, onSave, onDelete }) {
   const [name, setName] = useState(product?.name || "");
-  const [calories, setCalories] = useState(product?.calories || "");
-  const [proteins, setProteins] = useState(product?.proteins || "");
-  const [fats, setFats] = useState(product?.fats || "");
-  const [carbohydrates, setCarbohydrates] = useState(product?.carbohydrates || "");
-  const [weight, setWeight] = useState(product?.weight || "");
+  const [calories, setCalories] = useState(product?.calories?.toString() || "");
+  const [proteins, setProteins] = useState(product?.proteins?.toString() || "");
+  const [fats, setFats] = useState(product?.fats?.toString() || "");
+  const [carbohydrates, setCarbohydrates] = useState(product?.carbohydrates?.toString() || "");
+  const [weight, setWeight] = useState(product?.weight?.toString() || "");
   const [description, setDescription] = useState(product?.description || "");
-  const [picture, setPicture] = useState(product?.picture || null);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [picture, setPicture] = useState(product?.images?.cover || null);
+  const [pictureFile, setPictureFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
-    // Проверка типа файла
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
-    if (!allowedTypes.includes(file.type)) {
-      setError("Поддерживаются только изображения (JPEG, PNG, GIF)");
+  const handleWeightChange = (value) => {
+    if (value === "") {
+      setWeight("");
       return;
     }
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      setUploadingPhoto(true);
-      setError(null);
-
-      const response = await fetch(
-        `${API_BASE_URL}/products/upload-product-picture/${product.id}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Не удалось загрузить изображение");
-      }
-
-      const data = await response.json();
-      setPicture(data.file_url);
-    } catch (error) {
-      console.error("Ошибка загрузки изображения:", error);
-      setError(
-        error.message === "Failed to fetch"
-          ? "Не удалось загрузить изображение. Проверьте интернет-соединение."
-          : error.message
-      );
-    } finally {
-      setUploadingPhoto(false);
+    const num = Number(value);
+    if (!isNaN(num) && num >= 1) {
+      setWeight(value);
     }
   };
 
+  const handleWeightBlur = () => {
+    if (weight === "" || Number(weight) < 1) {
+      setWeight("1");
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError("Поддерживаются только изображения");
+      return;
+    }
+
+    setPictureFile(file);
+    setPicture(URL.createObjectURL(file));
+  };
+
   const triggerFileInput = () => {
-    document.getElementById("product-picture-upload").click();
+    fileInputRef.current?.click();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Валидация данных
     if (!name.trim()) {
       setError("Укажите название продукта");
       return;
@@ -86,17 +80,18 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       return;
     }
 
-    const productData = {
-      id: product.id,
-      name,
-      calories: parseFloat(calories),
-      proteins: parseFloat(proteins),
-      fats: parseFloat(fats),
-      carbohydrates: parseFloat(carbohydrates),
-      weight: parseFloat(weight),
-      description,
-      picture,
-    };
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("calories", parseFloat(calories).toString());
+    formData.append("proteins", parseFloat(proteins).toString());
+    formData.append("fats", parseFloat(fats).toString());
+    formData.append("carbohydrates", parseFloat(carbohydrates).toString());
+    formData.append("weight", parseFloat(weight).toString());
+    if (description) formData.append("description", description);
+
+    if (pictureFile) {
+      formData.append("picture", pictureFile);
+    }
 
     try {
       setLoading(true);
@@ -104,81 +99,50 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
 
       const response = await fetch(`${API_BASE_URL}/products/${product.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
         credentials: 'include',
-        body: JSON.stringify(productData),
+        body: formData,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          errorData.detail || 
-          "Сервер вернул ошибку. Попробуйте позже или обратитесь в поддержку."
-        );
+        throw new Error(errorData.detail || "Ошибка при обновлении продукта");
       }
 
-      onSave({
-        ...product,
-        ...productData,
-      });
-
+      const updatedProduct = await response.json();
+      onSave(updatedProduct);
       onClose();
     } catch (error) {
-      console.error("Ошибка при сохранении продукта:", error);
+      console.error("Ошибка обновления:", error);
       setError(
         error.message === "Failed to fetch"
-          ? "Не удалось сохранить изменения. Проверьте подключение к интернету."
+          ? "Не удалось сохранить изменения. Проверьте интернет."
           : error.message
       );
     } finally {
       setLoading(false);
+      if (pictureFile) URL.revokeObjectURL(picture);
     }
   };
 
   const handleDeleteClick = async () => {
-    if (!window.confirm(`Вы уверены, что хотите удалить продукт "${name}"?`)) {
-      return;
-    }
+    if (!window.confirm(`Вы уверены, что хотите удалить продукт "${name}"?`)) return;
 
     try {
       setDeleting(true);
       setError(null);
-
-      const response = await fetch(`${API_BASE_URL}/products/${product.id}`, {
-        method: "DELETE",
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Не удалось удалить продукт");
-      }
-
-      // Проверяем, что продукт действительно удален
-      const checkResponse = await fetch(`${API_BASE_URL}/products/personal`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (checkResponse.ok) {
-        const products = await checkResponse.json();
-        const productStillExists = products.some(p => p.id === product.id);
-        if (productStillExists) {
-          throw new Error("Продукт не был удален. Попробуйте снова.");
-        }
-      }
-
-      // Вызываем onDelete только после успешного удаления
       await onDelete(product.id);
       onClose();
     } catch (error) {
-      console.error("Ошибка при удалении продукта:", error);
-      setError(
-        error.message === "Failed to fetch"
-          ? "Не удалось удалить продукт. Проверьте подключение к интернету."
-          : error.message
-      );
+      console.error("Ошибка удаления:", error);
+      if (error.status === 409) {
+        setError("Невозможно удалить продукт, так как он используется в приёмах пищи.");
+      } else {
+        setError(
+          error.message === "Failed to fetch"
+            ? "Не удалось удалить продукт. Проверьте интернет."
+            : error.message
+        );
+      }
     } finally {
       setDeleting(false);
     }
@@ -188,57 +152,46 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
 
   return (
     <motion.div
-      className="personal-product-modal-overlay"
+      className="modal-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
-        className="personal-product-modal-container"
+        className="modal-container"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="personal-product-modal-header">
+        <div className="modal-header">
           <h2>Редактировать продукт</h2>
-          <button 
-            onClick={onClose} 
-            className="personal-product-modal-close"
-            disabled={loading || deleting}
-          >
-            ✕
+          <button className="modal-close" onClick={onClose} disabled={loading || deleting}>
+            ×
           </button>
         </div>
 
         {error && (
-          <div className="personal-product-modal-error">
+          <div className="modal-error">
             <ErrorHandler error={error} onClose={() => setError(null)} />
           </div>
         )}
 
-        {(loading || deleting) && (
-          <div className="personal-product-modal-loading-overlay">
-            <LoadingSpinner />
-            <p>{deleting ? "Удаление..." : "Сохранение..."}</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="personal-product-modal-body">
-          <div className="personal-product-modal-form-group">
-            <label>Название *</label>
+        <form onSubmit={handleSubmit} className="modal-content">
+          <div className="modal-form-group">
+            <label>Название продукта *</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required
+              placeholder="Например: Яблоко"
               disabled={loading || deleting}
             />
           </div>
 
-          <div className="nutrition-fields">
-            <div className="personal-product-modal-form-group">
+          <div className="nutrition-grid">
+            <div className="modal-form-group">
               <label>Калории (ккал) *</label>
               <input
                 type="number"
@@ -246,11 +199,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                 min="0"
                 value={calories}
                 onChange={(e) => setCalories(e.target.value)}
-                required
                 disabled={loading || deleting}
               />
             </div>
-            <div className="personal-product-modal-form-group">
+            <div className="modal-form-group">
               <label>Белки (г) *</label>
               <input
                 type="number"
@@ -258,11 +210,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                 min="0"
                 value={proteins}
                 onChange={(e) => setProteins(e.target.value)}
-                required
                 disabled={loading || deleting}
               />
             </div>
-            <div className="personal-product-modal-form-group">
+            <div className="modal-form-group">
               <label>Жиры (г) *</label>
               <input
                 type="number"
@@ -270,11 +221,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                 min="0"
                 value={fats}
                 onChange={(e) => setFats(e.target.value)}
-                required
                 disabled={loading || deleting}
               />
             </div>
-            <div className="personal-product-modal-form-group">
+            <div className="modal-form-group">
               <label>Углеводы (г) *</label>
               <input
                 type="number"
@@ -282,86 +232,71 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                 min="0"
                 value={carbohydrates}
                 onChange={(e) => setCarbohydrates(e.target.value)}
-                required
                 disabled={loading || deleting}
               />
             </div>
           </div>
 
-          <div className="personal-product-modal-form-group">
+          <div className="modal-form-group">
             <label>Вес (г) *</label>
             <input
-              type="number"
-              step="1"
-              min="1"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              required
+              onChange={(e) => handleWeightChange(e.target.value)}
+              onBlur={handleWeightBlur}
+              placeholder="Введите вес"
               disabled={loading || deleting}
             />
           </div>
 
-          <div className="personal-product-modal-form-group">
-            <label>Описание</label>
+          <div className="modal-form-group">
+            <label>Описание (необязательно)</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               disabled={loading || deleting}
+              placeholder="Краткое описание продукта"
             />
           </div>
 
-          <div className="personal-product-modal-form-group">
+          <div className="modal-form-group">
             <label>Изображение продукта</label>
             <div className="photo-upload-container">
               <button
                 type="button"
-                className={`photo-upload-button ${uploadingPhoto ? 'uploading' : ''}`}
+                className="photo-upload-button"
                 onClick={triggerFileInput}
-                disabled={uploadingPhoto || loading || deleting}
+                disabled={loading || deleting}
               >
                 <Upload size={16} className="upload-icon" />
-                <span>
-                  {uploadingPhoto ? "Загрузка..." : "Загрузить изображение"}
-                </span>
+                <span>{pictureFile ? "Изменить изображение" : "Загрузить изображение"}</span>
               </button>
               <input
                 type="file"
-                id="product-picture-upload"
+                ref={fileInputRef}
                 style={{ display: "none" }}
-                onChange={handleFileUpload}
+                onChange={handleFileChange}
                 accept="image/*"
               />
               <p className="photo-upload-note">Поддерживаются форматы JPEG, PNG, GIF</p>
               {picture && (
                 <div className="current-photo-info">
                   <span>Текущее изображение: </span>
-                  <a 
-                    href={picture} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                  >
-                    Посмотреть
-                  </a>
+                  <img src={picture} alt="Product" className="photo-preview" />
                 </div>
               )}
             </div>
           </div>
 
-          <div className="personal-product-modal-footer">
-            <button 
-              type="button" 
-              onClick={onClose} 
-              disabled={loading || deleting}
-              className="cancel-button"
-            >
-              Отмена
-            </button>
-            <button 
-              type="button" 
-              onClick={handleDeleteClick} 
-              disabled={loading || deleting}
+          <div className="modal-footer">
+            <button
+              type="button"
               className="delete-button"
+              onClick={handleDeleteClick}
+              disabled={loading || deleting}
             >
               {deleting ? <LoadingSpinner small white /> : (
                 <>
@@ -370,13 +305,14 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                 </>
               )}
             </button>
-            <button 
-              type="submit" 
-              disabled={loading || deleting}
-              className="submit-button"
-            >
-              {loading ? <LoadingSpinner small white /> : "Сохранить"}
-            </button>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button type="button" className="cancel-btn" onClick={onClose} disabled={loading || deleting}>
+                Отмена
+              </button>
+              <button type="submit" className="save-btn" disabled={loading || deleting}>
+                {loading ? <LoadingSpinner small white /> : "Сохранить"}
+              </button>
+            </div>
           </div>
         </form>
       </motion.div>

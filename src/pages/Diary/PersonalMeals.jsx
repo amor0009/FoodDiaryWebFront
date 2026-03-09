@@ -5,12 +5,47 @@ import Header from "../../components/Default/Header";
 import Menu from "../../components/Default/Menu";
 import MealModal from "../../components/Personal_Meals/MealModal";
 import EditMealModal from "../../components/Personal_Meals/EditMealModal";
-import MealItem from "../../components/Personal_Meals/MealItem";
+import MealItem from "../../components/Personal_Meals/MealItem"; // обновлённый компонент
 import ErrorHandler from "../../components/Default/ErrorHandler";
 import LoadingSpinner from "../../components/Default/LoadingSpinner";
 import ErrorWithRetry from "../../components/Default/ErrorWithRetry";
 import { API_BASE_URL } from '../../config';
 import "./PersonalMeals.css";
+
+// Компонент для сводки за день
+const DailySummary = ({ meals }) => {
+  const totals = meals.reduce(
+    (acc, meal) => {
+      acc.calories += meal.calories;
+      acc.proteins += meal.proteins;
+      acc.fats += meal.fats;
+      acc.carbohydrates += meal.carbohydrates;
+      return acc;
+    },
+    { calories: 0, proteins: 0, fats: 0, carbohydrates: 0 }
+  );
+
+  return (
+    <div className="daily-summary">
+      <div className="summary-card">
+        <span className="summary-label">Всего за день</span>
+        <span className="summary-value">{Math.round(totals.calories)} ккал</span>
+      </div>
+      <div className="summary-card">
+        <span className="summary-label">Белки</span>
+        <span className="summary-value">{totals.proteins.toFixed(1)} г</span>
+      </div>
+      <div className="summary-card">
+        <span className="summary-label">Жиры</span>
+        <span className="summary-value">{totals.fats.toFixed(1)} г</span>
+      </div>
+      <div className="summary-card">
+        <span className="summary-label">Углеводы</span>
+        <span className="summary-value">{totals.carbohydrates.toFixed(1)} г</span>
+      </div>
+    </div>
+  );
+};
 
 export default function PersonalMeals() {
   const [meals, setMeals] = useState([]);
@@ -52,7 +87,6 @@ export default function PersonalMeals() {
   }, [selectedDate]);
 
   const handleFetchError = (error) => {
-    // Обработка ошибки "Failed to fetch"
     if (error.message === "Failed to fetch") {
       setError("Ошибка сети. Проверьте подключение к интернету.");
     } else {
@@ -80,7 +114,7 @@ export default function PersonalMeals() {
       const data = await response.json();
       setUserData(data);
 
-      if (data.has_profile_picture) {
+      if (data.has_avatar) {
         await fetchProfilePicture();
       }
     } catch (error) {
@@ -90,18 +124,16 @@ export default function PersonalMeals() {
 
   const fetchProfilePicture = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/profile-picture`, {
+      const response = await fetch(`${API_BASE_URL}/users/avatar`, {
         credentials: 'include',
       });
 
       if (response.ok) {
-        const blob = await response.blob();
-        const imageUrl = URL.createObjectURL(blob);
-        if (profilePicture) URL.revokeObjectURL(profilePicture);
-        setProfilePicture(imageUrl);
+        const data = await response.json();
+        setProfilePicture(data.avatar || null);
       }
     } catch (error) {
-      console.error("Ошибка при получении фото профиля:", error);
+      console.error("Ошибка при получении аватара:", error);
     }
   };
 
@@ -111,39 +143,67 @@ export default function PersonalMeals() {
         method: "GET",
         credentials: 'include',
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || "Не удалось загрузить приёмы пищи");
       }
-  
+
       const data = await response.json();
-      const sortedMeals = [...data].sort((a, b) => a.id - b.id);
+      // сортировка по дате создания (предполагаем, что есть поле created_at)
+      const sortedMeals = [...data].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
       setMeals(sortedMeals);
     } catch (error) {
       throw error;
     }
   };
 
-  const handleSaveMeal = async (savedMeal) => {
+  // Обработчик сохранения нового приёма пищи (вызывается из MealModal)
+  const handleSaveMeal = async (newMeal) => {
     try {
-      setLoading(true);
-      await fetchMeals(selectedDate);
+      setMeals(prev => [...prev, newMeal].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
+      toast.toast({
+        title: "Успешно",
+        description: "Приём пищи добавлен",
+      });
     } catch (error) {
       handleFetchError(error);
-    } finally {
-      setLoading(false);
     }
   };
 
+  // Обработчик обновления приёма пищи
   const handleUpdateMeal = async (updatedMeal) => {
     try {
-      setLoading(true);
-      await fetchMeals(selectedDate);
+      setMeals(prev => prev.map(meal => meal.id === updatedMeal.id ? updatedMeal : meal));
+      toast.toast({
+        title: "Успешно",
+        description: "Приём пищи обновлён",
+      });
     } catch (error) {
       handleFetchError(error);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  // Обработчик удаления
+  const handleDelete = async (mealId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/meals/${mealId}`, {
+        method: "DELETE",
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Не удалось удалить приём пищи");
+      }
+
+      setMeals(prev => prev.filter(meal => meal.id !== mealId));
+      toast.toast({
+        title: "Успешно",
+        description: "Приём пищи удалён",
+      });
+    } catch (error) {
+      handleFetchError(error);
     }
   };
 
@@ -156,54 +216,13 @@ export default function PersonalMeals() {
     setIsEditModalOpen(true);
   };
 
-  const closeAddModal = async () => {
+  const closeAddModal = () => {
     setIsAddModalOpen(false);
-    try {
-      setLoading(true);
-      await fetchMeals(selectedDate);
-    } catch (error) {
-      handleFetchError(error);
-    } finally {
-      setLoading(false);
-    }
   };
 
-  const closeEditModal = async () => {
+  const closeEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedMeal(null);
-    try {
-      setLoading(true);
-      await fetchMeals(selectedDate);
-    } catch (error) {
-      handleFetchError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (mealId) => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/meals/${mealId}`, {
-        method: "DELETE",
-        credentials: 'include',
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Не удалось удалить приём пищи");
-      }
-    
-      await fetchMeals(selectedDate);
-      toast.toast({
-        title: "Успешно",
-        description: "Приём пищи успешно удалён",
-      });
-    } catch (error) {
-      handleFetchError(error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleLogout = async () => {
@@ -305,7 +324,7 @@ export default function PersonalMeals() {
         <div className="personal-meals-header">
           <h2>Мои приёмы пищи</h2>
           <div className="date-picker">
-            <label htmlFor="date">Выберите дату: </label>
+            <label htmlFor="date">Дата: </label>
             <input
               type="date"
               id="date"
@@ -319,13 +338,16 @@ export default function PersonalMeals() {
             onClick={openAddModal}
             className="personal-meals-add-meal-button"
             disabled={!isCurrentDate}
-            title={!isCurrentDate ? "Добавление приёма пищи доступно только для текущей даты" : ""}
+            title={!isCurrentDate ? "Добавление доступно только для текущей даты" : ""}
           >
-            Добавить приём пищи
+            + Добавить
           </button>
         </div>
 
         {error && <ErrorHandler error={error} onClose={() => setError(null)} />}
+
+        {/* Сводка за день */}
+        {meals.length > 0 && <DailySummary meals={meals} />}
 
         <div className="personal-meals-list">
           {meals.length > 0 ? (
@@ -339,7 +361,9 @@ export default function PersonalMeals() {
             ))
           ) : (
             <div className="no-meals-message">
-              Нет данных о приёмах пищи за выбранную дату
+              <span className="no-meals-icon">🍽️</span>
+              <p>На этот день приёмов пищи нет</p>
+              <small>Нажмите «+ Добавить», чтобы внести запись</small>
             </div>
           )}
         </div>
@@ -350,6 +374,7 @@ export default function PersonalMeals() {
           isOpen={isAddModalOpen}
           onClose={closeAddModal}
           onSave={handleSaveMeal}
+          selectedDate={selectedDate}
         />
       )}
 

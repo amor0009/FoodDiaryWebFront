@@ -32,7 +32,7 @@ export default function Profile() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const fileInputRef = useRef(null)
 
-  // Простая реализация toast
+  // Простая реализация toast (можно заменить на библиотеку)
   const toast = {
     toast: ({ title, description, variant }) => {
       console.log(`${variant || "default"}: ${title} - ${description}`)
@@ -56,12 +56,11 @@ export default function Profile() {
       setUserData(data)
       setEditedData(data)
 
-      // Загружаем фото профиля, если оно есть
-      if (data.has_profile_picture) {
+      // Загружаем аватар, если он есть
+      if (data.has_avatar) {
         fetchProfilePicture()
       }
     } catch (error) {
-      // Обработка ошибки "Failed to fetch"
       if (error.message === "Failed to fetch") {
         setError("Ошибка сети. Проверьте подключение к интернету.")
       } else {
@@ -81,50 +80,46 @@ export default function Profile() {
     fetchUserProfile()
   }, [])
 
-  // Получение фото профиля
+  // Получение URL аватара
   const fetchProfilePicture = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/profile-picture`, {
+      const response = await fetch(`${API_BASE_URL}/users/avatar`, {
         method: "GET",
         credentials: 'include',
       })
 
       if (response.ok) {
-        const blob = await response.blob()
-        const imageUrl = URL.createObjectURL(blob)
-        if (profilePicture) {
-          URL.revokeObjectURL(profilePicture)
-        }
-        setProfilePicture(imageUrl)
+        const data = await response.json() // { avatar: "url" }
+        setProfilePicture(data.avatar || null)
       }
     } catch (error) {
-      console.error("Ошибка при получении фото профиля:", error)
+      console.error("Ошибка при получении аватара:", error)
     }
   }
 
   const handlePhotoUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
       setError("Разрешены только изображения (JPEG, PNG, GIF)");
       return;
     }
-  
+
     try {
       setUploadingPhoto(true);
       const formData = new FormData();
       formData.append("file", file);
-  
-      const response = await fetch(`${API_BASE_URL}/users/upload-profile-picture`, {
+
+      const response = await fetch(`${API_BASE_URL}/users/upload-avatar`, {
         method: "POST",
         credentials: 'include',
         body: formData,
       });
-  
+
       if (!response.ok) {
-        let errorMessage = "Не удалось загрузить фото профиля";
+        let errorMessage = "Не удалось загрузить аватар";
         try {
           const errorData = await response.json();
           errorMessage = errorData.detail || errorMessage;
@@ -133,15 +128,12 @@ export default function Profile() {
         }
         throw new Error(errorMessage);
       }
-  
-      // Обновляем фото профиля
-      fetchProfilePicture();
-  
-      setError(null); // Сбрасываем ошибку, если загрузка прошла успешно
+
+      // Обновляем аватар (получаем новый URL)
+      await fetchProfilePicture();
+      setError(null);
     } catch (error) {
-      console.error("Ошибка при загрузке фото:", error);
-  
-      // Обработка сетевых ошибок
+      console.error("Ошибка при загрузке аватара:", error);
       if (error.name === "TypeError" || error.message.includes("Failed to fetch")) {
         setError("Ошибка сети: не удалось подключиться к серверу");
       } else {
@@ -161,7 +153,6 @@ export default function Profile() {
   const handleInputChange = (e) => {
     const { name, value } = e.target
 
-    // Преобразуем числовые значения
     let processedValue = value
     if (name === "age" || name === "height") {
       processedValue = value ? Number.parseInt(value, 10) : null
@@ -180,7 +171,6 @@ export default function Profile() {
     try {
       setSaving(true)
 
-      // Подготавливаем данные для отправки
       const dataToSend = {
         firstname: editedData.firstname,
         lastname: editedData.lastname,
@@ -193,7 +183,7 @@ export default function Profile() {
         recommended_calories: editedData.recommended_calories,
       }
 
-      // Удаляем null и undefined значения
+      // Удаляем null/undefined
       Object.keys(dataToSend).forEach((key) => {
         if (dataToSend[key] === null || dataToSend[key] === undefined) {
           delete dataToSend[key]
@@ -215,8 +205,8 @@ export default function Profile() {
       }
 
       const data = await response.json()
-      setUserData(data.user)
-      setEditedData(data.user)
+      setUserData(data)
+      setEditedData(data)
       setIsEditing(false)
       setMenuVisible(false)
 
@@ -225,7 +215,6 @@ export default function Profile() {
         description: "Ваши данные успешно сохранены",
       })
     } catch (error) {
-      // Обработка ошибки "Failed to fetch"
       if (error.message === "Failed to fetch") {
         setError("Ошибка сети. Проверьте подключение к интернету.")
       } else {
@@ -250,8 +239,6 @@ export default function Profile() {
   // Logout handler
   const handleLogout = async () => {
     try {
-
-      // Вызываем API для выхода
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
         credentials: 'include',
@@ -262,7 +249,6 @@ export default function Profile() {
         description: "Вы успешно вышли из аккаунта",
       })
 
-      // Перенаправление на страницу входа
       window.location.href = "/login"
     } catch (error) {
       console.error("Ошибка при выходе:", error)
@@ -335,7 +321,6 @@ export default function Profile() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Отображение ошибки */}
         {error && <ErrorHandler error={error} onClose={() => setError(null)} />}
 
         <Header
@@ -358,7 +343,6 @@ export default function Profile() {
           handleLogout={handleLogout}
         />
 
-        {/* Основной контент */}
         <div className="main-content">
           <div className="container_add mx-auto py-8 px-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -523,7 +507,6 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Модальное окно редактирования */}
         <EditProfileModal
           isEditing={isEditing}
           cancelEditing={cancelEditing}

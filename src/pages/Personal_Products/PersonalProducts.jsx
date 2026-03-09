@@ -102,30 +102,7 @@ export default function PersonalProducts() {
       }
 
       const data = await response.json();
-
-      const productsWithImages = await Promise.all(
-        data.map(async (product) => {
-          if (!product.has_picture) return { ...product, picture: null };
-
-          try {
-            const imageResponse = await fetch(
-              `${API_BASE_URL}/products/product-picture/${product.id}`,
-              { credentials: 'include',}
-            );
-
-            if (imageResponse.ok) {
-              const blob = await imageResponse.blob();
-              return { ...product, picture: URL.createObjectURL(blob) };
-            }
-            return { ...product, picture: null };
-          } catch (error) {
-            console.error("Ошибка загрузки изображения продукта:", error);
-            return { ...product, picture: null };
-          }
-        })
-      );
-
-      setProducts(productsWithImages);
+      setProducts(data);
     } catch (error) {
       throw error;
     }
@@ -152,12 +129,14 @@ export default function PersonalProducts() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || "Не удалось удалить продукт");
+        const error = new Error(errorData.detail || "Не удалось удалить продукт");
+        error.status = response.status;
+        throw error;
       }
 
       await fetchProducts();
     } catch (error) {
-      handleFetchError(error);
+      throw error; // пробрасываем в модалку
     } finally {
       setLoading(false);
     }
@@ -213,7 +192,6 @@ export default function PersonalProducts() {
         onRetry={() => {
           setError(null);
           setLoading(true);
-          // Вызываем полную перезагрузку данных, а не только продуктов
           const fetchData = async () => {
             try {
               await fetchUserProfile();

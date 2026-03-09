@@ -1,18 +1,17 @@
 .profile-page {
   height: 100vh;
   overflow-x: hidden;
-  overflow-y: auto; /* Разрешаем прокрутку только в профиле */
+  overflow-y: auto;
   margin: 0;
   padding: 0;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-
-/* Основной контейнер */
+/* Основной контейнер на всю ширину */
 .profile-container {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); /* Улучшенный градиент */
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
   color: #222;
   position: relative;
   min-height: 100vh;
@@ -23,96 +22,50 @@
 .main-content {
   position: relative;
   z-index: 2;
-  padding: 0px 0;
+  padding: 0;
 }
 
-/* Контейнер */
+/* Контейнер с адаптивной максимальной шириной */
 .container_add {
   background-color: transparent;
   width: 100%;
-  max-width: 1000px;
+  max-width: 1400px; /* Увеличено для лучшего размещения */
   margin-left: auto;
   margin-right: auto;
   position: relative;
   z-index: 3;
-  padding-top: 10px;
-}
-
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.px-4 {
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-
-.py-8 {
-  padding-top: 2rem;
-  padding-bottom: 2rem;
+  padding: 10px 20px 20px; /* Горизонтальные отступы для маленьких экранов */
+  box-sizing: border-box;
 }
 
 /* Сетка */
 .grid {
   display: grid;
   gap: 1.5rem;
+  grid-template-columns: 1fr; /* По умолчанию одна колонка */
 }
 
-.grid-cols-1 {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
+/* На больших экранах — три колонки с сохранением пропорций */
 @media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: 1.2fr 1.8fr; /* Левая колонка чуть шире */
+  }
+  
+  /* Переопределяем Tailwind-классы, чтобы они не ломали пропорции */
   .lg\:grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1.2fr 1.8fr !important;
   }
-
+  
   .lg\:col-span-1 {
-    grid-column: span 1 / span 1;
+    grid-column: span 1;
   }
-
+  
   .lg\:col-span-2 {
-    grid-column: span 2 / span 2;
+    grid-column: span 1; /* В новой сетке всего две колонки, поэтому span 1 */
   }
 }
 
-@media (min-width: 768px) {
-  .md\:grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* Флекс утилиты */
-.flex {
-  display: flex;
-}
-
-.flex-col {
-  flex-direction: column;
-}
-
-.items-center {
-  align-items: center;
-}
-
-.justify-center {
-  justify-content: center;
-}
-
-.justify-end {
-  justify-content: flex-end;
-}
-
-.gap-2 {
-  gap: 0.5rem;
-}
-
-.gap-6 {
-  gap: 1.5rem;
-}
-
-/* Обновленные стили для контейнера профиля */
+/* Стили для карточек профиля */
 .profile-content {
   background-color: white;
   border-radius: 12px;
@@ -122,6 +75,8 @@
   z-index: 3;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   margin-top: 10px;
+  width: 100%;
+  min-width: 0; /* Позволяет контенту сжиматься */
 }
 
 .profile-content:hover {
@@ -183,6 +138,8 @@
   font-weight: 450;
   font-size: 1.4rem;
   color: #111827;
+  word-break: break-word; /* Перенос длинных слов (email) */
+  overflow-wrap: break-word;
 }
 
 /* Секции профиля */
@@ -250,12 +207,18 @@
   font-weight: 450;
   font-size: 1.4rem;
   color: #111827;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Адаптивные стили */
 @media (max-width: 768px) {
   .profile-container {
     padding: 0;
+  }
+
+  .container_add {
+    padding: 10px 12px; /* Уменьшаем отступы на мобильных */
   }
 
   header.header-banner {
@@ -292,6 +255,12 @@
 
   .form-row {
     grid-template-columns: repeat(1, 1fr);
+  }
+
+  /* Уменьшаем шрифт для значений на мобильных */
+  .info-value,
+  .section-value {
+    font-size: 1.2rem;
   }
 }
 
@@ -348,17 +317,17 @@
 .custom-button {
   padding: 10px 20px;
   margin-bottom: 20px;
-  background-color: #f9a826; /* Цвет кнопки */
+  background-color: #f9a826;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s ease;
-  width: 200px; /* Фиксированная ширина для кнопок */
-  text-align: center; /* Выравнивание текста по центру */
+  width: 200px;
+  text-align: center;
 }
 
 .custom-button:hover {
-  background-color: #ff7e00; /* Цвет при наведении */
+  background-color: #ff7e00;
 }

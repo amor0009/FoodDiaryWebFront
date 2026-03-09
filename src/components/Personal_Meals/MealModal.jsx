@@ -5,14 +5,16 @@ import { API_BASE_URL } from '../../config';
 import LoadingSpinner from "../Default/LoadingSpinner";
 import ErrorHandler from "../Default/ErrorHandler";
 
-const MealModal = ({ isOpen, onClose, meal, onSave }) => {
+const MealModal = ({ isOpen, onClose, meal, onSave, selectedDate }) => {
   const [name, setName] = useState(meal?.name || "");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState(meal?.products || []);
   const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [searchTimeout, setSearchTimeout] = useState(null);
 
   useEffect(() => {
     if (meal?.products) {
@@ -20,11 +22,19 @@ const MealModal = ({ isOpen, onClose, meal, onSave }) => {
     }
   }, [meal]);
 
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) clearTimeout(searchTimeout);
+    };
+  }, [searchTimeout]);
+
   const searchProducts = async (query) => {
     if (!query.trim()) {
       setSearchResults([]);
+      setHasSearched(false);
       return;
     }
+
     setIsSearching(true);
     try {
       const response = await fetch(
@@ -34,26 +44,42 @@ const MealModal = ({ isOpen, onClose, meal, onSave }) => {
           credentials: 'include',
         }
       );
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || "Сервер не отвечает. Попробуйте позже.");
+        throw new Error(errorData.detail || "Ошибка при поиске продуктов");
       }
-      
+
       const data = await response.json();
       setSearchResults(data);
+      setHasSearched(true);
       setError(null);
     } catch (error) {
       console.error("Ошибка поиска:", error);
       setError(
-        error.message === "Failed to fetch" 
+        error.message === "Failed to fetch"
           ? "Не удалось подключиться к серверу. Проверьте интернет-соединение."
           : error.message
       );
       setSearchResults([]);
+      setHasSearched(true);
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setHasSearched(false);
+
+    if (searchTimeout) clearTimeout(searchTimeout);
+
+    const timeout = setTimeout(() => {
+      searchProducts(value);
+    }, 300);
+
+    setSearchTimeout(timeout);
   };
 
   const addProduct = (product) => {
@@ -61,15 +87,36 @@ const MealModal = ({ isOpen, onClose, meal, onSave }) => {
     setSelectedProducts([...selectedProducts, { ...product, weight: 100 }]);
     setSearchQuery("");
     setSearchResults([]);
+    setHasSearched(false);
   };
 
-  const updateProductWeight = (id, weight) => {
-    const newWeight = Math.max(1, Number(weight));
-    setSelectedProducts((prev) =>
-      prev.map((product) =>
-        product.id === id ? { ...product, weight: newWeight } : product
-      )
-    );
+  const updateProductWeight = (id, weightString) => {
+    if (weightString === "") {
+      setSelectedProducts((prev) =>
+        prev.map((product) =>
+          product.id === id ? { ...product, weight: "" } : product
+        )
+      );
+      return;
+    }
+    const weight = Number(weightString);
+    if (!isNaN(weight) && weight >= 1) {
+      setSelectedProducts((prev) =>
+        prev.map((product) =>
+          product.id === id ? { ...product, weight } : product
+        )
+      );
+    }
+  };
+
+  const handleWeightBlur = (id, weight) => {
+    if (weight === "" || Number(weight) < 1) {
+      setSelectedProducts((prev) =>
+        prev.map((product) =>
+          product.id === id ? { ...product, weight: 1 } : product
+        )
+      );
+    }
   };
 
   const removeProduct = (id) => {
@@ -87,7 +134,12 @@ const MealModal = ({ isOpen, onClose, meal, onSave }) => {
       return;
     }
 
-    const totals = selectedProducts.reduce(
+    const productsToSave = selectedProducts.map(p => ({
+      ...p,
+      weight: Number(p.weight) || 1
+    }));
+
+    const totals = productsToSave.reduce(
       (acc, product) => ({
         calories: acc.calories + (product.calories * product.weight) / 100,
         proteins: acc.proteins + (product.proteins * product.weight) / 100,
@@ -102,7 +154,7 @@ const MealModal = ({ isOpen, onClose, meal, onSave }) => {
     const mealData = {
       name,
       ...totals,
-      products: selectedProducts.map((product) => ({
+      products: productsToSave.map((product) => ({
         product_id: product.id,
         product_weight: product.weight,
       })),
@@ -112,13 +164,16 @@ const MealModal = ({ isOpen, onClose, meal, onSave }) => {
       setIsSaving(true);
       setError(null);
 
-      const url = meal?.id 
-        ? `${API_BASE_URL}/meals/update/${meal.id}`
-        : `${API_BASE_URL}/meals/add`;
+      const url = meal?.id
+        ? `${API_BASE_URL}/meals/${meal.id}`
+        : `${API_BASE_URL}/meals/`;
       const method = meal?.id ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: 'include',
         body: JSON.stringify(mealData),
       });
@@ -126,11 +181,10 @@ const MealModal = ({ isOpen, onClose, meal, onSave }) => {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.detail || 
-          "Сервер вернул ошибку. Попробуйте позже или обратитесь в поддержку."
+          errorData.detail || "Ошибка при сохранении приёма пищи"
         );
       }
-      
+
       const savedMeal = await response.json();
       onSave(savedMeal);
       onClose();
@@ -164,84 +218,83 @@ const MealModal = ({ isOpen, onClose, meal, onSave }) => {
           </div>
         )}
 
-        <div className="meal-modal-form-group">
-          <label>Название приёма пищи *</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Например: Завтрак, Обед"
-          />
-        </div>
-
-        <div className="meal-modal-form-group">
-          <label>Поиск продуктов</label>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              const value = e.target.value;
-              setSearchQuery(value);
-              searchProducts(value);
-            }}
-            placeholder="Начните вводить название продукта"
-          />
-          {isSearching ? (
-            <div className="meal-modal-loading">
-              <LoadingSpinner small />
-            </div>
-          ) : searchResults.length > 0 ? (
-            <ul className="search-results">
-              {searchResults.map((product) => (
-                <li key={product.id} onClick={() => addProduct(product)}>
-                  {product.name} ({product.calories} ккал/100г)
-                </li>
-              ))}
-            </ul>
-          ) : searchQuery && !isSearching ? (
-            <p className="empty-state">Продукты не найдены</p>
-          ) : null}
-        </div>
-
-        <div className="selected-products">
-          <div className="selected-products-header">
-            <span>Продукт</span>
-            <span>Вес (г)</span>
-            <span>Ккал</span>
-            <span></span>
+        <div className="meal-modal-content">
+          <div className="meal-modal-form-group">
+            <label>Название приёма пищи *</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Например: Завтрак, Обед"
+            />
           </div>
 
-          {selectedProducts.length > 0 ? (
-            selectedProducts.map((product) => (
-              <div key={product.id} className="selected-product">
-                <span className="selected-product-name" title={product.name}>
-                  {product.name}
-                </span>
-                <input
-                  type="number"
-                  value={product.weight}
-                  onChange={(e) => updateProductWeight(product.id, e.target.value)}
-                  min="1"
-                />
-                <span className="selected-product-unit">
-                  {Math.round((product.calories * product.weight) / 100)}
-                </span>
-                <button
-                  onClick={() => removeProduct(product.id)}
-                  title="Удалить"
-                >
-                  ×
-                </button>
-              </div>
-            ))
-          ) : (
-            <p className="empty-state">Нет выбранных продуктов</p>
-          )}
+          <div className="meal-modal-form-group">
+            <label>Поиск продуктов</label>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="Начните вводить название продукта"
+            />
+            <div className="search-results-container">
+              {searchResults.length > 0 ? (
+                <ul className="search-results">
+                  {searchResults.map((product) => (
+                    <li key={product.id} onClick={() => addProduct(product)}>
+                      {product.name} ({product.calories} ккал/100г)
+                    </li>
+                  ))}
+                </ul>
+              ) : hasSearched && searchQuery ? (
+                <p className="empty-state">Продукты не найдены</p>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="selected-products">
+            <div className="selected-products-header">
+              <span>Продукт</span>
+              <span>Вес (г)</span>
+              <span>Ккал</span>
+              <span></span>
+            </div>
+
+            {selectedProducts.length > 0 ? (
+              selectedProducts.map((product) => (
+                <div key={product.id} className="selected-product">
+                  <span className="selected-product-name" title={product.name}>
+                    {product.name}
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={product.weight}
+                    onChange={(e) => updateProductWeight(product.id, e.target.value)}
+                    onBlur={(e) => handleWeightBlur(product.id, e.target.value)}
+                    placeholder="Вес"
+                  />
+                  <span className="selected-product-unit">
+                    {Math.round((product.calories * (Number(product.weight) || 0)) / 100)}
+                  </span>
+                  <button
+                    onClick={() => removeProduct(product.id)}
+                    title="Удалить"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="empty-state">Нет выбранных продуктов</p>
+            )}
+          </div>
         </div>
 
         <div className="meal-modal-footer">
-          <button onClick={onClose}>Отмена</button>
-          <button onClick={handleSave} disabled={isSaving}>
+          <button className="cancel-btn" onClick={onClose}>Отмена</button>
+          <button className="save-btn" onClick={handleSave} disabled={isSaving}>
             {isSaving ? <LoadingSpinner small white /> : "Сохранить"}
           </button>
         </div>
