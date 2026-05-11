@@ -1,149 +1,219 @@
 .calculate-nutrients-section {
   text-align: center;
-  padding: 20px;
-  background-color: #dfdfdf;
+  padding: 40px 20px;
+  background-color: #f5f7fa;
   width: 100%;
 }
 
 .calculate-nutrients-title {
-  font-size: 24px;
-  margin-bottom: 40px;
-  color: #333;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  padding: 40px 0px;
+  margin-bottom: 2rem;
+  letter-spacing: -0.5px;
 }
 
 .form-result-container {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  gap: 50px;
-  width: 100%;
+  gap: 2rem;
+  max-width: 1100px;
+  padding: 0px 20px;
+  margin: 0 auto;
+  flex-wrap: wrap;
 }
 
-.form-container, .result-container {
-  flex: 1;
-  max-width: 400px;
+.form-container,
+.result-container {
+  background: white;
+  border-radius: 28px;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
 .form-container {
-  background-color: #ffffff;
-  width: 300px;
-  padding: 20px;
-  align-items: right;
-  border-radius: 15px;
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+  margin-bottom: 190px;
 }
 
 .result-container {
-  background-color: #ffffff;
-  max-width: 270px;
-  max-height: 250px;
-  padding: 20px;
-  align-items: right;
-  border-radius: 15px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 340px;
+  padding: 2rem;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+  border: 1px solid rgba(79, 24, 242, 0.1);
+  transition: box-shadow 0.3s;
 }
 
-/* Форма */
+.result-container:hover {
+  box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.2);
+}
+
+.result-container h3 {
+  font-size: 1.6rem;
+  margin-bottom: 1.5rem;
+  color: #1e1e2f;
+  text-align: center;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f1f3f8;
+  padding: 0.7rem 1rem;
+  border-radius: 60px;
+  margin: 0.8rem 0;
+  font-size: 1.1rem;
+  color: #2d2d3a;
+}
+
+.result-row span {
+  font-weight: 600;
+  color: #4e18f2;
+}
+
+.result-row strong {
+  font-weight: 700;
+  color: #1e1e2f;
+}     
+
 .form {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  border-radius: 15px;
-  width: 100%;
+  gap: 1rem;   
+  margin-bottom: 7px;                                                                           
 }
 
-/* Инпуты и селекты */
-.input, select {
-  margin: 10px 0;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #afafaf;
-  width: 100%;
-  font-size: 16px;
-  background-color: #dfdfdf;
-  color: #000000df;
+/* Базовые стили для обычных инпутов */
+.input {
+  padding: 0.9rem 1.2rem;
+  border-radius: 60px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 1rem;
+  background-color: #fefefe;
+  color: #1a1a2e;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.input::placeholder {
+  color: #a0aec0;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #4e18f2;
+  box-shadow: 0 0 0 3px rgba(78, 24, 242, 0.2);
 }
 
 /* Кнопка */
 .submit-btn {
-  padding: 10px;
-  margin-top: 10px;
-  background-color: #f9a826;
+  background: linear-gradient(135deg, #f9a826 0%, #ff7e00 100%);
   color: white;
+  font-weight: bold;
   border: none;
-  border-radius: 8px;
-  font-size: 18px;
+  padding: 0.9rem;
+  border-radius: 60px;
+  font-size: 1.1rem;
   cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .submit-btn:hover {
-  background-color: #ff7e00;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(249, 168, 38, 0.4);
+  background: linear-gradient(135deg, #ffb347 0%, #ff7e00 100%);
 }
 
-/* Блок результата */
-.result-container h3 {
-  margin-bottom: 10px;
-  font-size: 20px;
-  text-align: center;
-  color: #000000df;
-
+/* Кастомные селекты (общие стили) */
+.custom-select {
+  position: relative;
+  width: 100%;
+  user-select: none;
 }
 
-.result-container p {
-  font-size: 18px;
-  margin: 20px 0;
-  text-align: center;
-  color: #000000df;
-}
-
-/* Форма */
-.form {
+.custom-select-trigger {
+  padding: 0.9rem 1.2rem;
+  border-radius: 60px;
+  border: 1.5px solid #e2e8f0;
+  background-color: #fefefe;
+  color: #1a1a2e;
+  font-size: 1rem;
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  border-radius: 15px;
-  width: 100%;
+  transition: all 0.2s;
 }
 
-/* Инпуты и селекты */
-.input, select {
-  margin: 10px 0;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #afafaf;
-  width: 100%;
-  font-size: 16px;
-  background-color: #dfdfdf;
-  color: #000000df;
+.custom-select-trigger:hover {
+  border-color: #4e18f2;
 }
 
-/* Кнопка */
-.submit-btn {
-  padding: 10px;
-  margin-top: 10px;
-  background-color: #f9a826;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
+.custom-select-trigger .arrow {
+  font-size: 0.8rem;
+  color: #4e18f2;
+  margin-left: 8px;
+}
+
+.custom-options {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease;
+}
+
+.custom-option {
+  padding: 0.9rem 1.2rem;
+  font-size: 1rem;
+  color: #1a1a2e;
   cursor: pointer;
+  transition: background 0.2s;
+  text-align: left;
 }
 
-.submit-btn:hover {
-  background-color: #ff7e00;
+.custom-option:hover {
+  background-color: #f5f3ff;
+  color: #4e18f2;
 }
 
-/* Блок результата */
-.result-container h3 {
-  margin-bottom: 10px;
-  font-size: 20px;
-  text-align: center;
-  color: #000000df;
-
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.result-container p {
-  font-size: 18px;
-  margin: 20px 0;
-  text-align: center;
-  color: #000000df;
+/* Мобильные устройства */
+@media (max-width: 768px) {
+  .form-result-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  .form-container,
+  .result-container {
+    max-width: 100%;
+  }
+  .result-container {
+    margin-top: 1rem;
+  }
+  .calculate-nutrients-title {
+    font-size: 1.6rem;
+  }
 }

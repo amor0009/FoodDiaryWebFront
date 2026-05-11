@@ -353,19 +353,11 @@ export default function Profile() {
                 </div>
                 <div className="profile-body">
                   <div className="info-items">
-                    <div className="info-item">
-                      <User size={20} className="info-icon" />
-                      <div>
-                        <p className="info-label">Логин</p>
-                        <p className="info-value">{userData.login}</p>
-                      </div>
-                    </div>
-
                     {userData.email && (
                       <div className="info-item">
                         <Mail size={20} className="info-icon" />
                         <div>
-                          <p className="info-label">Email</p>
+                          <p className="info-label">Логин/Email</p>
                           <p className="info-value">{userData.email}</p>
                         </div>
                       </div>
@@ -416,11 +408,7 @@ export default function Profile() {
                           <p className="section-value">{userData.lastname || "—"}</p>
                         </div>
                         <div className="section-item">
-                          <p className="section-label">Логин</p>
-                          <p className="section-value">{userData.login}</p>
-                        </div>
-                        <div className="section-item">
-                          <p className="section-label">Email</p>
+                          <p className="section-label">Логин/Email</p>
                           <p className="section-value">{userData.email}</p>
                         </div>
                         <div className="section-item">

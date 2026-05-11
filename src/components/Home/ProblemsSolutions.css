@@ -1,66 +1,71 @@
-/* Контейнер секции */
 .problems-solutions {
-    background-color: #dfdfdf;
-    margin-top: 63px;
-    width: 100%;
-    text-align: center;
-  }
-  
-  /* Заголовок секции */
-  .section-title-problems-and-solutions {
-    font-size: 30px;
-    font-weight: bold;
-    color: #000000df;
-    text-align: center;
-    display: inline-block;
-    margin-top: 30px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-  }
-  
-  /* Основной контейнер проблем и решений */
-  .problem-solution-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 100px;
-    max-width: 1200px;
-    margin-top: 10px;
-    margin-bottom: 40px;
-    margin-left: 150px;
-    margin-right: 40px;
-  }
-  
- /* Колонки */
+  background-color: #f8f9fc;
+  width: 100%;
+  padding: 60px 20px;
+}
+
+.section-title-problems-and-solutions {
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  color: #1e1e2f;
+  margin-bottom: 50px;
+}
+
+.problem-solution-container {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 .problems, .solutions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start; /* Выровнять весь текст слева */
-    border-radius: 10px;
+  flex: 1;
+  min-width: 260px;
+  background: white;
+  border-radius: 32px;
+  padding: 30px 28px;
+  box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s;
+}
+
+.problems:hover, .solutions:hover {
+  transform: translateY(-5px);
+}
+
+.problems h3, .solutions h3 {
+  font-size: 1.6rem;
+  margin-bottom: 1.5rem;
+  color: #2d2d3a;
+  border-left: 4px solid #f9a826;
+  padding-left: 15px;
+}
+
+.problem, .solution {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.05rem;
+  padding: 12px 0;
+  color: #2c3e50;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.icon-problems-solutions {
+  font-size: 1.4rem;
+  min-width: 32px;
+}
+
+@media (max-width: 768px) {
+  .problem-solution-container {
+    gap: 30px;
   }
-  
-  /* Блоки с проблемами и решениями */
-  .problem, .solution {
-    display: flex;  
-    align-items: flex-start; /* Выровнять иконку и текст по левому краю */
-    text-align: left; /* Дополнительно для надёжности */
-    font-size: 16px;
-    gap: 7px;
-    color: #000000df;
-    padding: 7px;
-    margin-top: 7px;
-    border-radius: 5px;
-  }  
-  
-  /* Заголовки проблем и решений */
-  h3 {
-    font-size: 24px;
-    color: #000000df;   
-    border-radius: 5px;
+  .section-title-problems-and-solutions {
+    font-size: 1.6rem;
   }
-  
-  /* Иконки */
-  .icon-problems-solutions {
-    font-size: 18px;
-    text-align: left;
+  .problems h3, .solutions h3 {
+    font-size: 1.3rem;
   }
-  
+}

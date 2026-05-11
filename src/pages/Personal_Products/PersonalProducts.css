@@ -12,7 +12,7 @@
   
 /* Основной контент */
 .personal-products-content {
-  max-width: 1400px; /* Увеличиваем максимальную ширину */
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   padding-top: 50px;
@@ -54,8 +54,8 @@
   /* Список продуктов */
   .personal-products-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Увеличиваем минимальную ширину */
-    gap: 0.8rem; /* Уменьшаем расстояние между карточками */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.8rem;
     padding: 0 20px;
   }
   
@@ -253,11 +253,20 @@
   /* Адаптивные стили */
   @media (max-width: 768px) {
     .personal-products-list {
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Уменьшаем ширину для мобильных */
-      gap: 1rem; /* Увеличиваем расстояние для мобильных */
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
     }
   
     .personal-products-modal-container {
       width: 95%;
     }
+  }
+
+  /* Сообщение об отсутствии продуктов */
+  .no-products-message {
+    text-align: center;
+    color: white;
+    font-size: 1.3rem;
+    padding: 2rem;
+    grid-column: 1 / -1; /* чтобы занимало всю ширину сетки */
   }

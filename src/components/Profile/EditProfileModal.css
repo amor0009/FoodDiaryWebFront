@@ -142,23 +142,23 @@
 .form-group input,
 .form-group select {
   margin-top: 0px;
-  width: 100%; /* Автоматически подстраиваться */
-  max-width: 340px; /* Ограничение по ширине */
-  height: 40px; /* Единая высота */
+  width: 100%;
+  max-width: 340px;
+  height: 40px;
   padding: 0.625rem 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 0.4rem;
   font-size: 0.9rem;
-  box-sizing: border-box; /* Учитывает padding в ширине */
-  background-color: #dfdfdf; /* Цвет как на скрине */
+  box-sizing: border-box;
+  background-color: #dfdfdf;
   color: black;
 }
 
 .form-group select {
-  appearance: none; /* Убираем стандартное оформление */
+  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  padding-right: 2rem; /* Отступ для стрелки */
+  padding-right: 2rem;
   background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='16' height='16' fill='%239ca3af'><path d='M7 10l5 5 5-5z'></path></svg>");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
@@ -299,6 +299,80 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон */
-  z-index: 10000; /* Выше модального окна */
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+}
+
+/* ===== Кастомные селекты для модального окна ===== */
+.custom-select-profile {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  user-select: none;
+}
+
+.custom-select-trigger-profile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 40px;
+  padding: 0 0.75rem;
+  background-color: #dfdfdf;
+  border: 1px solid #d1d5db;
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+  color: black;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.custom-select-trigger-profile:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.custom-select-trigger-profile .arrow-profile {
+  font-size: 0.7rem;
+  color: #6b7280;
+  margin-left: 8px;
+}
+
+.custom-options-profile {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.4rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeInProfile 0.2s ease;
+}
+
+.custom-option-profile {
+  padding: 0.625rem 0.75rem;
+  font-size: 0.9rem;
+  color: black;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.custom-option-profile:hover {
+  background-color: #f3f4f6;
+  color: #7c3aed;
+}
+
+@keyframes fadeInProfile {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -23,7 +23,7 @@ export default function Settings() {
   // Email change
   const [newEmail, setNewEmail] = useState("")
   const [emailCode, setEmailCode] = useState("")
-  const [emailStep, setEmailStep] = useState(1) // 1: enter email, 2: enter code
+  const [emailStep, setEmailStep] = useState(1)
   const [emailLoading, setEmailLoading] = useState(false)
 
   // Delete account
@@ -158,7 +158,6 @@ export default function Settings() {
         const errData = await res.json()
         throw new Error(errData.detail || "Ошибка при удалении аккаунта")
       }
-      // Logout and redirect
       await fetch(`${API_BASE_URL}/auth/logout`, { method: "POST", credentials: "include" })
       window.location.href = "/login"
     } catch (err) {
@@ -186,8 +185,10 @@ export default function Settings() {
           </div>
         )}
 
+        {/* Исправленный хедер: сетка 3 колонки для центрирования заголовка */}
         <div className="settings-header">
-          <h1>Настройки аккаунта</h1>
+          <div className="header-left"></div>
+          <h1 className="header-title">Настройки аккаунта</h1>
           <button className="back-button" onClick={() => navigate(-1)}>← Назад</button>
         </div>
 
@@ -276,7 +277,8 @@ export default function Settings() {
           {/* Опасная зона */}
           <div className="settings-card danger">
             <h2>Опасная зона</h2>
-            <p>Удаление аккаунта приведёт к безвозвратной потере всех данных.</p>
+            {/* Текст предупреждения теперь чёрный */}
+            <p className="danger-warning-text">Удаление аккаунта приведёт к безвозвратной потере всех данных.</p>
             {!showDeleteConfirm ? (
               <button className="danger-button" onClick={() => setShowDeleteConfirm(true)}>
                 Удалить аккаунт

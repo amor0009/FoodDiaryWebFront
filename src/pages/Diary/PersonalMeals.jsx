@@ -1,11 +1,14 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import DatePicker from "react-datepicker";
+import ru from "date-fns/locale/ru";
+import "react-datepicker/dist/react-datepicker.css";
 import Header from "../../components/Default/Header";
 import Menu from "../../components/Default/Menu";
 import MealModal from "../../components/Personal_Meals/MealModal";
 import EditMealModal from "../../components/Personal_Meals/EditMealModal";
-import MealItem from "../../components/Personal_Meals/MealItem"; // обновлённый компонент
+import MealItem from "../../components/Personal_Meals/MealItem";
 import ErrorHandler from "../../components/Default/ErrorHandler";
 import LoadingSpinner from "../../components/Default/LoadingSpinner";
 import ErrorWithRetry from "../../components/Default/ErrorWithRetry";
@@ -57,8 +60,13 @@ export default function PersonalMeals() {
   const [profilePicture, setProfilePicture] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const isCurrentDate = selectedDate === new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const isCurrentDate = selectedDate.toDateString() === new Date().toDateString();
+
+  // Ограничения: сегодня и один месяц назад от сегодня
+  const minDate = new Date();
+  minDate.setMonth(minDate.getMonth() - 1);  // изменено с -7 дней на -1 месяц
+  const maxDate = new Date();
 
   // Простая реализация toast
   const toast = {
@@ -74,7 +82,7 @@ export default function PersonalMeals() {
         setError(null);
         await Promise.all([
           fetchUserProfile(),
-          fetchMeals(selectedDate)
+          fetchMeals(formatDate(selectedDate))
         ]);
       } catch (error) {
         handleFetchError(error);
@@ -85,6 +93,8 @@ export default function PersonalMeals() {
 
     fetchData();
   }, [selectedDate]);
+
+  const formatDate = (date) => date.toISOString().split('T')[0];
 
   const handleFetchError = (error) => {
     if (error.message === "Failed to fetch") {
@@ -150,7 +160,6 @@ export default function PersonalMeals() {
       }
 
       const data = await response.json();
-      // сортировка по дате создания (предполагаем, что есть поле created_at)
       const sortedMeals = [...data].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
       setMeals(sortedMeals);
     } catch (error) {
@@ -158,7 +167,6 @@ export default function PersonalMeals() {
     }
   };
 
-  // Обработчик сохранения нового приёма пищи (вызывается из MealModal)
   const handleSaveMeal = async (newMeal) => {
     try {
       setMeals(prev => [...prev, newMeal].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
@@ -171,7 +179,6 @@ export default function PersonalMeals() {
     }
   };
 
-  // Обработчик обновления приёма пищи
   const handleUpdateMeal = async (updatedMeal) => {
     try {
       setMeals(prev => prev.map(meal => meal.id === updatedMeal.id ? updatedMeal : meal));
@@ -184,7 +191,6 @@ export default function PersonalMeals() {
     }
   };
 
-  // Обработчик удаления
   const handleDelete = async (mealId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/meals/${mealId}`, {
@@ -207,19 +213,12 @@ export default function PersonalMeals() {
     }
   };
 
-  const openAddModal = () => {
-    setIsAddModalOpen(true);
-  };
-
+  const openAddModal = () => setIsAddModalOpen(true);
   const openEditModal = (meal) => {
     setSelectedMeal(meal);
     setIsEditModalOpen(true);
   };
-
-  const closeAddModal = () => {
-    setIsAddModalOpen(false);
-  };
-
+  const closeAddModal = () => setIsAddModalOpen(false);
   const closeEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedMeal(null);
@@ -248,19 +247,10 @@ export default function PersonalMeals() {
   };
 
   const translateValue = (value, category) => {
-    if (!value) return "—"
-
+    if (!value) return "—";
     const translations = {
-      gender: {
-        male: "Мужской",
-        female: "Женский",
-        other: "Другой",
-      },
-      aim: {
-        loss: "Снижение веса",
-        maintain: "Поддержание веса",
-        gain: "Набор веса",
-      },
+      gender: { male: "Мужской", female: "Женский", other: "Другой" },
+      aim: { loss: "Снижение веса", maintain: "Поддержание веса", gain: "Набор веса" },
       activity_level: {
         sedentary: "Сидячий образ жизни",
         light: "Легкая активность",
@@ -268,10 +258,9 @@ export default function PersonalMeals() {
         active: "Высокая активность",
         very_active: "Очень высокая активность",
       },
-    }
-
-    return translations[category] && translations[category][value] ? translations[category][value] : value
-  }
+    };
+    return translations[category]?.[value] ?? value;
+  };
 
   if (loading && !error) {
     return (
@@ -291,7 +280,7 @@ export default function PersonalMeals() {
           try {
             await Promise.all([
               fetchUserProfile(),
-              fetchMeals(selectedDate)
+              fetchMeals(formatDate(selectedDate))
             ]);
           } catch (error) {
             handleFetchError(error);
@@ -325,13 +314,16 @@ export default function PersonalMeals() {
           <h2>Мои приёмы пищи</h2>
           <div className="date-picker">
             <label htmlFor="date">Дата: </label>
-            <input
-              type="date"
-              id="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              min={new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0]}
+            <DatePicker
+              selected={selectedDate}
+              onChange={(date) => setSelectedDate(date)}
+              dateFormat="dd.MM.yyyy"
+              locale={ru}
+              maxDate={maxDate}
+              minDate={minDate}
+              className="custom-datepicker"
+              calendarClassName="custom-calendar"
+              popperClassName="custom-popper"
             />
           </div>
           <button
@@ -346,7 +338,6 @@ export default function PersonalMeals() {
 
         {error && <ErrorHandler error={error} onClose={() => setError(null)} />}
 
-        {/* Сводка за день */}
         {meals.length > 0 && <DailySummary meals={meals} />}
 
         <div className="personal-meals-list">
@@ -374,7 +365,7 @@ export default function PersonalMeals() {
           isOpen={isAddModalOpen}
           onClose={closeAddModal}
           onSave={handleSaveMeal}
-          selectedDate={selectedDate}
+          selectedDate={formatDate(selectedDate)}
         />
       )}
 

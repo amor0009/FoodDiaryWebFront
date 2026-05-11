@@ -5,7 +5,11 @@ import { motion } from "framer-motion"
 import { API_BASE_URL } from '../../config'
 import LoadingSpinner from "../../components/Default/LoadingSpinner"
 import ErrorHandler from "../../components/Default/ErrorHandler"
-import { User, Mail, Cake, Users, Target, Ruler, Utensils, ArrowLeft } from "lucide-react"
+import WeightChart from "../../components/Weight_Statistic/WeightChart"
+import {
+  User, Mail, Cake, Users, Target, Ruler, Utensils,
+  ArrowLeft, Scale, Lightbulb
+} from "lucide-react"
 import "./FamilyMemberProfile.css"
 
 export default function FamilyMemberProfile() {
@@ -14,25 +18,16 @@ export default function FamilyMemberProfile() {
   const navigate = useNavigate()
   const { familyId, memberEmail } = location.state || {}
 
-  const [userData, setUserData] = useState(null)
-  const [meals, setMeals] = useState([])
+  const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [activeTab, setActiveTab] = useState("meals")
 
-  // Перевод значений на русский
   const translateValue = (value, category) => {
     if (!value) return "—"
     const translations = {
-      gender: {
-        male: "Мужской",
-        female: "Женский",
-        other: "Другой",
-      },
-      aim: {
-        loss: "Снижение веса",
-        maintain: "Поддержание веса",
-        gain: "Набор веса",
-      },
+      gender: { male: "Мужской", female: "Женский" },
+      aim: { loss: "Снижение веса", maintain: "Поддержание веса", gain: "Набор веса" },
       activity_level: {
         sedentary: "Сидячий образ жизни",
         light: "Легкая активность",
@@ -41,57 +36,46 @@ export default function FamilyMemberProfile() {
         very_active: "Очень высокая активность",
       },
     }
-    return translations[category] && translations[category][value] ? translations[category][value] : value
+    return translations[category]?.[value] || value
   }
 
   useEffect(() => {
-    const fetchMemberData = async () => {
+    if (!familyId || !userId) {
+      setError("Недостаточно данных для загрузки профиля")
+      setLoading(false)
+      return
+    }
+
+    const fetchProfile = async () => {
       try {
-        // Получаем данные пользователя по email (если есть) или по userId (если есть эндпоинт)
-        // Используем email, переданный из state, или делаем запрос на поиск
-        let userResponse
-        if (memberEmail) {
-          userResponse = await fetch(`${API_BASE_URL}/users/find/${memberEmail}`, {
-            credentials: "include",
-          })
-        } else {
-          // Если нет email, пробуем получить по userId (предполагаем, что есть эндпоинт /users/{userId})
-          userResponse = await fetch(`${API_BASE_URL}/users/${userId}`, {
-            credentials: "include",
-          })
+        const res = await fetch(
+          `${API_BASE_URL}/families/${familyId}/members/${userId}/profile`,
+          { credentials: "include" }
+        )
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}))
+          throw new Error(errData.detail || "Ошибка загрузки профиля")
         }
-
-        if (!userResponse.ok) throw new Error("Не удалось загрузить данные пользователя")
-        const user = await userResponse.json()
-        setUserData(user)
-
-        // TODO: Запрос на получение приёмов пищи пользователя (пока заглушка)
-        // Когда появится эндпоинт /users/{userId}/meals, заменим
-        // const mealsResponse = await fetch(`${API_BASE_URL}/users/${userId}/meals`, { credentials: "include" })
-        // if (mealsResponse.ok) setMeals(await mealsResponse.json())
-        
-        // Временно заполняем тестовыми данными
-        setMeals([
-          { id: 1, name: "Завтрак", calories: 450, date: "2024-03-09" },
-          { id: 2, name: "Обед", calories: 780, date: "2024-03-09" },
-          { id: 3, name: "Ужин", calories: 620, date: "2024-03-08" },
-        ])
+        const data = await res.json()
+        setProfile(data)
       } catch (err) {
         setError(err.message)
       } finally {
         setLoading(false)
       }
     }
-
-    if (userId || memberEmail) {
-      fetchMemberData()
-    } else {
-      setError("Не указан идентификатор пользователя")
-      setLoading(false)
-    }
-  }, [userId, memberEmail])
+    fetchProfile()
+  }, [familyId, userId])
 
   if (loading) return <LoadingSpinner />
+
+  const user = profile?.user
+  const meals = profile?.meals || []
+  const weightHistory = profile?.weight_history || []
+  const recommendations = profile?.recommendations || []
+
+  // Сортируем приёмы пищи по дате (от старых к новым)
+  const sortedMeals = [...meals].reverse()
 
   return (
     <div className="profile-page">
@@ -112,7 +96,7 @@ export default function FamilyMemberProfile() {
         <div className="main-content">
           <div className="container_add mx-auto py-8 px-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Левая колонка - основная информация */}
+              {/* Левая колонка – основная информация */}
               <div className="profile-content lg:col-span-1">
                 <div className="profile-header">
                   <h2 className="text-xl font-bold">Информация об участнике</h2>
@@ -123,36 +107,36 @@ export default function FamilyMemberProfile() {
                       <User size={20} className="info-icon" />
                       <div>
                         <p className="info-label">Имя</p>
-                        <p className="info-value">{userData?.firstname || userData?.login || "—"}</p>
+                        <p className="info-value">{user?.firstname || user?.login || "—"}</p>
                       </div>
                     </div>
 
-                    {userData?.email && (
+                    {user?.email && (
                       <div className="info-item">
                         <Mail size={20} className="info-icon" />
                         <div>
                           <p className="info-label">Email</p>
-                          <p className="info-value">{userData.email}</p>
+                          <p className="info-value">{user.email}</p>
                         </div>
                       </div>
                     )}
 
-                    {userData?.age && (
+                    {user?.age && (
                       <div className="info-item">
                         <Cake size={20} className="info-icon" />
                         <div>
                           <p className="info-label">Возраст</p>
-                          <p className="info-value">{userData.age} лет</p>
+                          <p className="info-value">{user.age} лет</p>
                         </div>
                       </div>
                     )}
 
-                    {userData?.gender && (
+                    {user?.gender && (
                       <div className="info-item">
                         <Users size={20} className="info-icon" />
                         <div>
                           <p className="info-label">Пол</p>
-                          <p className="info-value">{translateValue(userData.gender, "gender")}</p>
+                          <p className="info-value">{translateValue(user.gender, "gender")}</p>
                         </div>
                       </div>
                     )}
@@ -160,7 +144,7 @@ export default function FamilyMemberProfile() {
                 </div>
               </div>
 
-              {/* Правая колонка - подробности и приёмы пищи */}
+              {/* Правая колонка – детали и история */}
               <div className="profile-content lg:col-span-2">
                 <div className="profile-header">
                   <h2 className="text-xl font-bold">Профиль участника</h2>
@@ -175,16 +159,16 @@ export default function FamilyMemberProfile() {
                       <div className="section-grid">
                         <div className="section-item">
                           <p className="section-label">Рост</p>
-                          <p className="section-value">{userData?.height ? `${userData.height} см` : "—"}</p>
+                          <p className="section-value">{user?.height ? `${user.height} см` : "—"}</p>
                         </div>
                         <div className="section-item">
                           <p className="section-label">Вес</p>
-                          <p className="section-value">{userData?.weight ? `${userData.weight} кг` : "—"}</p>
+                          <p className="section-value">{user?.weight ? `${user.weight} кг` : "—"}</p>
                         </div>
                         <div className="section-item">
                           <p className="section-label">Рекомендуемые калории</p>
                           <p className="section-value">
-                            {userData?.recommended_calories ? `${userData.recommended_calories} ккал/день` : "—"}
+                            {user?.recommended_calories ? `${user.recommended_calories} ккал/день` : "—"}
                           </p>
                         </div>
                       </div>
@@ -198,39 +182,123 @@ export default function FamilyMemberProfile() {
                       <div className="section-grid">
                         <div className="section-item">
                           <p className="section-label">Цель</p>
-                          <p className="section-value">{translateValue(userData?.aim, "aim")}</p>
+                          <p className="section-value">{translateValue(user?.aim, "aim")}</p>
                         </div>
                         <div className="section-item">
                           <p className="section-label">Уровень активности</p>
-                          <p className="section-value">{translateValue(userData?.activity_level, "activity_level")}</p>
+                          <p className="section-value">{translateValue(user?.activity_level, "activity_level")}</p>
                         </div>
                       </div>
                     </div>
 
                     <div className="profile-section">
-                      <h3 className="section-title">
-                        <Utensils size={18} className="section-icon" />
-                        Последние приёмы пищи
-                      </h3>
-                      <div className="meals-list">
-                        {meals.length > 0 ? (
-                          meals.map(meal => (
-                            <div key={meal.id} className="meal-item">
-                              <div>
-                                <strong>{meal.name}</strong>
-                                <span className="meal-date">{meal.date}</span>
+                      <div className="section-tabs">
+                        <button className={`tab ${activeTab === "meals" ? "active" : ""}`} onClick={() => setActiveTab("meals")}>
+                          <Utensils size={16} /> Приёмы пищи
+                        </button>
+                        <button className={`tab ${activeTab === "weight" ? "active" : ""}`} onClick={() => setActiveTab("weight")}>
+                          <Scale size={16} /> Вес
+                        </button>
+                        <button className={`tab ${activeTab === "recommendations" ? "active" : ""}`} onClick={() => setActiveTab("recommendations")}>
+                          <Lightbulb size={16} /> Рекомендации
+                        </button>
+                      </div>
+
+                      <div className="section-tab-content">
+                        {activeTab === "meals" && (
+                          <div className="meals-container">
+                            {sortedMeals.length === 0 ? (
+                              <p className="empty-text">Нет данных за 30 дней</p>
+                            ) : (
+                              sortedMeals.map(meal => (
+                                <div key={meal.id} className="meal-item">
+                                  <div className="meal-header">
+                                    <div className="meal-title">
+                                      <h3>{meal.name}</h3>
+                                      <span className="meal-time">
+                                        {new Date(meal.created_at).toLocaleString('ru-RU', {
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric'
+                                        })}
+                                      </span>
+                                    </div>
+                                    <div className="meal-summary">
+                                      <span className="kcal">{Math.round(meal.calories)} ккал</span>
+                                      <span className="macros">
+                                        Б {meal.proteins.toFixed(1)} · Ж {meal.fats.toFixed(1)} · У {meal.carbohydrates.toFixed(1)}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {meal.products.length > 0 && (
+                                    <div className="nutrition-table">
+                                      <div className="nutrition-table-header">
+                                        <span>Продукт</span>
+                                        <span>Вес, г</span>
+                                        <span>Ккал</span>
+                                        <span>Б</span>
+                                        <span>Ж</span>
+                                        <span>У</span>
+                                      </div>
+                                      {meal.products.map(product => (
+                                        <div key={product.id} className="table-row">
+                                          <span>{product.name}</span>
+                                          <span>{product.weight}</span>
+                                          <span>{Math.round(product.calories)}</span>
+                                          <span>{product.proteins.toFixed(1)}</span>
+                                          <span>{product.fats.toFixed(1)}</span>
+                                          <span>{product.carbohydrates.toFixed(1)}</span>
+                                        </div>
+                                      ))}
+                                      <div className="table-footer">
+                                        <span>Итого</span>
+                                        <span>{meal.weight} г</span>
+                                        <span>{Math.round(meal.calories)}</span>
+                                        <span>{meal.proteins.toFixed(1)}</span>
+                                        <span>{meal.fats.toFixed(1)}</span>
+                                        <span>{meal.carbohydrates.toFixed(1)}</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        )}
+
+                        {activeTab === "weight" && (
+                          <div className="weight-section">
+                            {weightHistory.length === 0 ? (
+                              <p className="empty-text">Нет записей за 30 дней</p>
+                            ) : (
+                              <div className="chart-container">
+                                <WeightChart weightHistory={weightHistory} />
                               </div>
-                              <span className="meal-calories">{meal.calories} ккал</span>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-gray-500">Нет данных о приёмах пищи</p>
+                            )}
+                          </div>
+                        )}
+
+                        {activeTab === "recommendations" && (
+                          <div className="recommendations-list">
+                            {recommendations.length === 0 ? (
+                              <p className="empty-text">Нет рекомендаций</p>
+                            ) : (
+                              recommendations.map(rec => (
+                                <div key={rec.id} className={`rec-item ${rec.is_completed ? "completed" : ""}`}>
+                                  <div className="rec-message">{rec.message}</div>
+                                  <div className="rec-meta">
+                                    <span>{rec.date}</span>
+                                    <span>{rec.is_completed ? "✅ Выполнена" : "⏳ Ожидает"}</span>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
                         )}
                       </div>
-                      {/* Кнопка для просмотра всех приёмов пищи (когда будет эндпоинт) */}
-                      <button className="view-all-btn" onClick={() => alert("Функция в разработке")}>
-                        Посмотреть все записи
-                      </button>
                     </div>
                   </div>
                 </div>

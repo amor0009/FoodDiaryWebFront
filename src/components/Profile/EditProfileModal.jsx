@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit, User, Upload, Ruler, Target } from "lucide-react";
-import ErrorHandler from "../../components/Default/ErrorHandler"; // Импортируем ErrorHandler
+import ErrorHandler from "../../components/Default/ErrorHandler";
 import "./EditProfileModal.css";
 
 export default function EditProfileModal({
@@ -14,18 +14,41 @@ export default function EditProfileModal({
   saveProfile,
   saving,
 }) {
-  const [error, setError] = useState(null); // Локальное состояние для ошибок
+  const [error, setError] = useState(null);
+  // Состояния для кастомных дропдаунов
+  const [genderOpen, setGenderOpen] = useState(false);
+  const [aimOpen, setAimOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
+  // Рефы для отслеживания кликов вне
+  const genderRef = useRef(null);
+  const aimRef = useRef(null);
+  const activityRef = useRef(null);
 
-  // Функция для обработки ошибок
+  // Закрытие дропдаунов при клике вне
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (genderRef.current && !genderRef.current.contains(event.target)) {
+        setGenderOpen(false);
+      }
+      if (aimRef.current && !aimRef.current.contains(event.target)) {
+        setAimOpen(false);
+      }
+      if (activityRef.current && !activityRef.current.contains(event.target)) {
+        setActivityOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleError = (error) => {
     if (error.message === "Failed to fetch") {
       setError("Ошибка сети. Проверьте подключение к интернету.");
     } else {
-      setError(error.message); // Устанавливаем сообщение об ошибке
+      setError(error.message);
     }
   };
 
-  // Валидация данных перед сохранением
   const validateData = () => {
     if (!editedData.firstname || !editedData.lastname) {
       setError("Пожалуйста, заполните имя и фамилию.");
@@ -46,15 +69,41 @@ export default function EditProfileModal({
     return true;
   };
 
-  // Обработчик сохранения профиля
   const handleSave = async () => {
-    if (!validateData()) return; // Проверяем данные перед сохранением
-
+    if (!validateData()) return;
     try {
-      await saveProfile(); // Вызываем переданную функцию сохранения
+      await saveProfile();
     } catch (error) {
-      handleError(error); // Обрабатываем ошибку
+      handleError(error);
     }
+  };
+
+  // Вспомогательные функции для отображения выбранного значения
+  const getGenderLabel = () => {
+    if (!editedData.gender) return "Выберите пол";
+    return editedData.gender === "male" ? "Мужской" : "Женский";
+  };
+
+  const getAimLabel = () => {
+    if (!editedData.aim) return "Выберите цель";
+    const map = {
+      loss: "Снижение веса",
+      gain: "Набор веса",
+      maintain: "Поддержание веса",
+    };
+    return map[editedData.aim];
+  };
+
+  const getActivityLabel = () => {
+    if (!editedData.activity_level) return "Выберите уровень активности";
+    const map = {
+      sedentary: "Сидячий образ жизни",
+      light: "Легкая активность",
+      moderate: "Умеренная активность",
+      active: "Высокая активность",
+      very_active: "Очень высокая активность",
+    };
+    return map[editedData.activity_level];
   };
 
   return (
@@ -134,11 +183,38 @@ export default function EditProfileModal({
                   <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="gender">Пол</label>
-                      <select id="gender" name="gender" value={editedData.gender || ""} onChange={handleInputChange}>
-                        <option value="" disabled>Выберите пол</option>
-                        <option value="male">Мужской</option>
-                        <option value="female">Женский</option>
-                      </select>
+                      {/* Кастомный селект для пола */}
+                      <div className="custom-select-profile" ref={genderRef}>
+                        <div
+                          className="custom-select-trigger-profile"
+                          onClick={() => setGenderOpen(!genderOpen)}
+                        >
+                          <span>{getGenderLabel()}</span>
+                          <span className="arrow-profile">{genderOpen ? "▲" : "▼"}</span>
+                        </div>
+                        {genderOpen && (
+                          <div className="custom-options-profile">
+                            <div
+                              className="custom-option-profile"
+                              onClick={() => {
+                                handleInputChange({ target: { name: "gender", value: "male" } });
+                                setGenderOpen(false);
+                              }}
+                            >
+                              Мужской
+                            </div>
+                            <div
+                              className="custom-option-profile"
+                              onClick={() => {
+                                handleInputChange({ target: { name: "gender", value: "female" } });
+                                setGenderOpen(false);
+                              }}
+                            >
+                              Женский
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="form-group">
                       <label htmlFor="profile_picture">Фото профиля</label>
@@ -196,23 +272,109 @@ export default function EditProfileModal({
                   <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="aim">Цель</label>
-                      <select id="aim" name="aim" value={editedData.aim || ""} onChange={handleInputChange}>
-                        <option value="" disabled>Выберите цель</option>
-                        <option value="loss">Снижение веса</option>
-                        <option value="gain">Набор веса</option>
-                        <option value="maintain">Поддержание веса</option>
-                      </select>
+                      {/* Кастомный селект для цели */}
+                      <div className="custom-select-profile" ref={aimRef}>
+                        <div
+                          className="custom-select-trigger-profile"
+                          onClick={() => setAimOpen(!aimOpen)}
+                        >
+                          <span>{getAimLabel()}</span>
+                          <span className="arrow-profile">{aimOpen ? "▲" : "▼"}</span>
+                        </div>
+                        {aimOpen && (
+                          <div className="custom-options-profile">
+                            <div
+                              className="custom-option-profile"
+                              onClick={() => {
+                                handleInputChange({ target: { name: "aim", value: "loss" } });
+                                setAimOpen(false);
+                              }}
+                            >
+                              Снижение веса
+                            </div>
+                            <div
+                              className="custom-option-profile"
+                              onClick={() => {
+                                handleInputChange({ target: { name: "aim", value: "maintain" } });
+                                setAimOpen(false);
+                              }}
+                            >
+                              Поддержание веса
+                            </div>
+                            <div
+                              className="custom-option-profile"
+                              onClick={() => {
+                                handleInputChange({ target: { name: "aim", value: "gain" } });
+                                setAimOpen(false);
+                              }}
+                            >
+                              Набор веса
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="form-group">
                       <label htmlFor="activity_level">Уровень активности</label>
-                      <select id="activity_level" name="activity_level" value={editedData.activity_level || ""} onChange={handleInputChange}>
-                        <option value="" disabled>Выберите уровень активности</option>
-                        <option value="sedentary">Сидячий образ жизни</option>
-                        <option value="light">Легкая активность</option>
-                        <option value="moderate">Умеренная активность</option>
-                        <option value="active">Высокая активность</option>
-                        <option value="very_active">Очень высокая активность</option>
-                      </select>
+                      {/* Кастомный селект для активности */}
+                      <div className="custom-select-profile" ref={activityRef}>
+                        <div
+                          className="custom-select-trigger-profile"
+                          onClick={() => setActivityOpen(!activityOpen)}
+                        >
+                          <span>{getActivityLabel()}</span>
+                          <span className="arrow-profile">{activityOpen ? "▲" : "▼"}</span>
+                        </div>
+                        {activityOpen && (
+                          <div className="custom-options-profile">
+                            <div
+                              className="custom-option-profile"
+                              onClick={() => {
+                                handleInputChange({ target: { name: "activity_level", value: "sedentary" } });
+                                setActivityOpen(false);
+                              }}
+                            >
+                              Сидячий образ жизни
+                            </div>
+                            <div
+                              className="custom-option-profile"
+                              onClick={() => {
+                                handleInputChange({ target: { name: "activity_level", value: "light" } });
+                                setActivityOpen(false);
+                              }}
+                            >
+                              Легкая активность
+                            </div>
+                            <div
+                              className="custom-option-profile"
+                              onClick={() => {
+                                handleInputChange({ target: { name: "activity_level", value: "moderate" } });
+                                setActivityOpen(false);
+                              }}
+                            >
+                              Умеренная активность
+                            </div>
+                            <div
+                              className="custom-option-profile"
+                              onClick={() => {
+                                handleInputChange({ target: { name: "activity_level", value: "active" } });
+                                setActivityOpen(false);
+                              }}
+                            >
+                              Высокая активность
+                            </div>
+                            <div
+                              className="custom-option-profile"
+                              onClick={() => {
+                                handleInputChange({ target: { name: "activity_level", value: "very_active" } });
+                                setActivityOpen(false);
+                              }}
+                            >
+                              Очень высокая активность
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -226,7 +388,6 @@ export default function EditProfileModal({
             </div>
           </motion.div>
 
-          {/* Отображение ошибки поверх модального окна */}
           <AnimatePresence>
             {error && (
               <motion.div

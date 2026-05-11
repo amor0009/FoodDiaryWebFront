@@ -1,104 +1,140 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import "./Registration.css";
-import { Link } from "react-router-dom"; // Импортируем Link для навигации
-import LoadingSpinner from "../../components/Default/LoadingSpinner"; // Импортируем LoadingSpinner
-import ErrorHandler from "../../components/Default/ErrorHandler"; // Импортируем ErrorHandler
+import LoadingSpinner from "../../components/Default/LoadingSpinner";
+import ErrorHandler from "../../components/Default/ErrorHandler";
 import { API_BASE_URL } from '../../config';
 
 export default function Registration() {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // Состояние загрузки
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const [step, setStep] = useState(1); // 1-email, 2-code, 3-final
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const closeErrorHandler = () => setError("");
+
+  // Шаг 1 — отправка email
+  const handleSendCode = async (e) => {
     e.preventDefault();
     setError("");
 
-    // Проверка на русские символы в username
-    const russianRegex = /[а-яА-Я]/;
-    if (russianRegex.test(username)) {
-      setError("Логин не должен содержать русские символы.");
+    if (!email.trim()) {
+      setError("Пожалуйста, введите email");
       return;
     }
-
-    if (russianRegex.test(email) ) {
-      setError("Адрес электронной почты не должен содержать русские символы.");
-      return;
-    }
-
-    if (russianRegex.test(password)) {
-      setError("Пароль не должен содержать русские символы.");
-      return;
-    }
-
-    // Проверка на пустые поля
-    if (!username || !email || !password) {
-      setError("Пожалуйста, заполните все поля.");
-      return;
-    }
-
-    // Проверка на валидность email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError("Пожалуйста, введите корректный email.");
       return;
     }
 
-    // Проверка на русские символы в password
-    if (russianRegex.test(password)) {
-      setError("Пароль не должен содержать русские символы.");
-      return;
-    }
-
-    const userData = {
-      login: username,
-      email: email,
-      password: password,
-    };
-
     try {
-      setIsLoading(true); // Включаем загрузку
-      const response = await fetch(`${API_BASE_URL}/auth/registration`, {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE_URL}/auth/register/start`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ email }),
+        credentials: "include",
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        // Обработка ошибок от сервера
-        if (errorData.detail === "User with this email already exists") {
-          throw new Error("Пользователь с таким email уже существует.");
-        } else if (errorData.detail === "User with this login already exists") {
-          throw new Error("Пользователь с таким логином уже существует.");
-        } else {
-          throw new Error("Ошибка при регистрации. Попробуйте снова.");
-        }
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || "Ошибка отправки кода");
       }
 
-      navigate("/login"); // Перенаправление после успешной регистрации
+      setStep(2);
     } catch (err) {
-      // Обработка ошибки "Failed to fetch"
-      if (err.message === "Failed to fetch") {
-        setError("Ошибка сети. Проверьте подключение к интернету.");
-      } else {
-        setError(err.message); // Устанавливаем сообщение об ошибке
-      }
+      setError(err.message === "Failed to fetch" ? "Ошибка сети. Проверьте подключение к интернету." : err.message);
     } finally {
-      setIsLoading(false); // Выключаем загрузку
+      setIsLoading(false);
     }
   };
 
-  // Закрытие окна с ошибкой
-  const closeErrorHandler = () => {
+  // Шаг 2 — проверка кода
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
     setError("");
+
+    if (!code.trim()) {
+      setError("Введите код подтверждения");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE_URL}/auth/register/check?code=${encodeURIComponent(code)}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || "Неверный код");
+      }
+
+      setStep(3);
+    } catch (err) {
+      setError(err.message === "Failed to fetch" ? "Ошибка сети. Проверьте подключение к интернету." : err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Шаг 3 — финальная регистрация
+  const handleFinalRegister = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!password || !passwordConfirm) {
+      setError("Заполните оба поля пароля");
+      return;
+    }
+    if (password !== passwordConfirm) {
+      setError("Пароли не совпадают");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Пароль должен содержать не менее 6 символов");
+      return;
+    }
+
+    const payload = {
+      email,
+      password,
+      password_confirm: passwordConfirm,
+      code,
+      firstname: firstname || null,
+      lastname: lastname || null,
+    };
+
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE_URL}/auth/register/final`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || "Ошибка регистрации");
+      }
+
+      navigate("/login");
+    } catch (err) {
+      setError(err.message === "Failed to fetch" ? "Ошибка сети. Проверьте подключение к интернету." : err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -108,10 +144,7 @@ export default function Registration() {
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
-      {/* Отображение спиннера */}
       {isLoading && <LoadingSpinner />}
-
-      {/* Отображение ошибки */}
       {error && <ErrorHandler error={error} onClose={closeErrorHandler} />}
 
       <motion.h1
@@ -120,62 +153,93 @@ export default function Registration() {
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.3 }}
       >
-        Создайте аккаунт
+        Регистрация
       </motion.h1>
 
-      <motion.form
+      <motion.div
         className="registration-form"
-        onSubmit={handleSubmit}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.7 }}
       >
-        <motion.input
-          type="text"
-          placeholder="Логин"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="input-field"
-          required
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.9 }}
-        />
-        <motion.input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="input-field"
-          required
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.1 }}
-        />
-        <motion.input
-          type="password"
-          placeholder="Пароль"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="input-field"
-          required
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.3 }}
-        />
-        <motion.button
-          type="submit"
-          className="registration-btn"
-          disabled={isLoading} // Блокируем кнопку при загрузке
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.5 }}
-        >
-          Регистрация
-        </motion.button>
-      </motion.form>
+        {step === 1 && (
+          <form onSubmit={handleSendCode} className="step-form">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input-field"
+              required
+            />
+            <button type="submit" className="registration-btn" disabled={isLoading}>
+              Отправить код
+            </button>
+          </form>
+        )}
 
-      {/* Ссылка "Войти" с анимацией */}
+        {step === 2 && (
+          <form onSubmit={handleVerifyCode} className="step-form">
+            <p className="step-hint">Код отправлен на {email}</p>
+            <input
+              type="text"
+              placeholder="Код подтверждения"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="input-field"
+              required
+            />
+            <button type="submit" className="registration-btn" disabled={isLoading}>
+              Подтвердить код
+            </button>
+            <button type="button" className="secondary-btn" onClick={() => setStep(1)}>
+              Назад
+            </button>
+          </form>
+        )}
+
+        {step === 3 && (
+          <form onSubmit={handleFinalRegister} className="step-form">
+            <input
+              type="password"
+              placeholder="Пароль (мин. 6 символов)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-field"
+              required
+            />
+            <input
+              type="password"
+              placeholder="Подтверждение пароля"
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
+              className="input-field"
+              required
+            />
+            <input
+              type="text"
+              placeholder="Имя (необязательно)"
+              value={firstname}
+              onChange={(e) => setFirstname(e.target.value)}
+              className="input-field"
+            />
+            <input
+              type="text"
+              placeholder="Фамилия (необязательно)"
+              value={lastname}
+              onChange={(e) => setLastname(e.target.value)}
+              className="input-field"
+            />
+            <button type="submit" className="registration-btn" disabled={isLoading}>
+              Зарегистрироваться
+            </button>
+            <button type="button" className="secondary-btn" onClick={() => setStep(2)}>
+              Назад
+            </button>
+          </form>
+        )}
+      </motion.div>
+
       <motion.div
         className="to-login-btn-container"
         initial={{ opacity: 0 }}
@@ -187,7 +251,6 @@ export default function Registration() {
         </Link>
       </motion.div>
 
-      {/* Кнопка Home для возврата на главную страницу */}
       <motion.div
         className="home-btn-container"
         initial={{ opacity: 0 }}

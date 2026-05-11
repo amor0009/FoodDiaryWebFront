@@ -1,56 +1,82 @@
-/* Устанавливаем фон на всю страницу */
-body {
-  font-family: 'Arial', sans-serif;
-  height: 100vh;
+html, body {
   width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #7d02f8;
+  font-family: 'Arial', sans-serif;
+}
+
+body {
+  display: block;
+  min-height: 100vh;
+  overflow-x: hidden;        /* убираем горизонтальную прокрутку */
+  scrollbar-width: none;     /* скрываем полосу в Firefox */
+  -ms-overflow-style: none;  /* скрываем в IE/Edge */
+}
+
+body::-webkit-scrollbar {
+  display: none;             /* скрываем в Chrome/Safari/Opera */
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #7d02f8;
   margin: 0;
   padding: 0;
 }
 
-/* Контейнер с контентом */
-.container {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;  
-  text-align: center;
-  height: 740px;
-  width: 100vw;
-  background-color: #7d02f8;
-}
-
-.preview {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  text-align: center;
-  width: 100%;
-}
-
-.advantages {
-  display: flex;
-  width: 100%;
-}
-
-.works {
-  display: flex;
-  width: 100%;
-}
-
+/* Все секции – растянуты на 100% ширины окна */
+.preview,
+.advantages,
+.works,
 .calculate-nutrients {
   display: flex;
-  width: 100%
+  width: 100vw;
+  padding: 0 !important;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* Первая секция – на всю высоту экрана */
+.preview {
+  margin-top: 30px;
+  min-height: 100vh;
+}
+
+.calculate-nutrients::after {
+  display: none;
+}
+
+/* Контент внутри секций – центрируем, но фон секции уже на всю ширину */
+.preview > *,
+.advantages > *,
+.works > *,
+.calculate-nutrients > * {
+  width: 100%;
+  padding: 0 20px;
+  margin: 0 auto;
+}
+
+/* Сброс отступов у заголовков и параграфов */
+h1, h2, h3, h4, h5, h6, p {
+  margin: 0;
+  padding: 0;
 }
 
 p {
   color: #f5f4f2df;
   font-size: 27px;
-  margin-top: 0px;
   text-align: center;
+  margin: 1rem 0;
+  line-height: 1.4;
 }
 
-/* Для кнопки или других элементов формы */
 button {
-  background-color: #f5f4f2df; /* Оранжевый */
+  background-color: #f5f4f2df;
   color: #4e18f2;
   padding: 0.8rem 2rem;
   border: none;
@@ -61,5 +87,38 @@ button {
 }
 
 button:hover {
-  background-color: #b1b1b1; /* Более темный оранжевый */
+  background-color: #b1b1b1;
+}
+
+/* Адаптивность: на мобильных уменьшаем отступы контента */
+@media (max-width: 768px) {
+  p {
+    font-size: 1.2rem;
+  }
+  button {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+  }
+  .preview > *,
+  .advantages > *,
+  .works > *,
+  .calculate-nutrients > * {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  p {
+    font-size: 1rem;
+  }
+  button {
+    padding: 0.5rem 1.2rem;
+    font-size: 0.8rem;
+  }
+  .preview > *,
+  .advantages > *,
+  .works > *,
+  .calculate-nutrients > * {
+    padding: 0 12px;
+  }
 }

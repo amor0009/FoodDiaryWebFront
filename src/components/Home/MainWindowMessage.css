@@ -1,38 +1,58 @@
 .main-message {
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* Центрируем контент */
-    align-items: center;
-    text-align: center;
-    width: 100%;
-    min-height: 80vh; /* Растягиваем фон на весь экран */
-    margin-top: 0px;
-    background-color: #7d02f8;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  min-height: 80vh;
+  background-color: #7d02f8;
+  padding: 0 20px;
 }
 
-
-.h1 {
-    font-size: 100px;
-    color: #f5f4f2df;
-    text-align: center;
+.main-message h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(to right, #ffffff, #e0c3ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  max-width: 900px;
+  margin-bottom: 1.2rem;
+  line-height: 1.2;
 }
 
-.p {
-    font-size: 30px;
-    color: #f5f4f2df;
-    text-align: center;
+.main-message p {
+  font-size: 1.3rem;
+  max-width: 650px;
+  margin-bottom: 2rem;
+  color: #f3eaff;
 }
 
 .try-btn {
-    background-color: #f5f4f2df;
-    color: #4e18f2;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
+  background: white;
+  color: #4e18f2;
+  font-weight: bold;
+  padding: 0.9rem 2.2rem;
+  font-size: 1.1rem;
+  border-radius: 50px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.try-btn:hover {
+  background: #f9f9ff;
+  transform: scale(1.02);
+}
+
+@media (max-width: 768px) {
+  .main-message h1 {
+    font-size: 2.2rem;
   }
-  
-  .try-btn:hover {
-    background-color: #b1b1b1;
+  .main-message p {
+    font-size: 1rem;
   }
+  .try-btn {
+    padding: 0.7rem 1.6rem;
+    font-size: 1rem;
+  }
+}
