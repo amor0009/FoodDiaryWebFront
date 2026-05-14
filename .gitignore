@@ -23,12 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-Dockerfile
 .dockerignore
-eslint.config.js
-nginx.conf
-package-lock.json
-package.json
 README.md
-vite.config.js
 src/assets
