@@ -612,7 +612,6 @@ export default function Family() {
                           </span>
                         </div>
                         <div className="member-actions" onClick={e => e.stopPropagation()}>
-                          {/* Кнопка "Профиль" только для других участников */}
                           {member.user_id !== currentUserId && (
                             <button
                               className="icon-btn view-profile"
@@ -792,7 +791,7 @@ export default function Family() {
                 <form onSubmit={handleAddProduct}>
                   <div className="form-group"><label>Поиск продукта</label><input type="text" placeholder="Введите название продукта" value={productSearchQuery} onChange={handleProductSearchChange} /></div>
                   <div className="search-results-container">
-                    {isSearchingProduct && <LoadingSpinner small />}
+                    {isSearchingProduct && <div className="search-loading-text">Поиск...</div>}
                     {productSearchResults.length > 0 && (
                       <ul className="search-results">
                         {productSearchResults.map(product => (

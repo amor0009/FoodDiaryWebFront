@@ -50,6 +50,85 @@ const DailySummary = ({ meals }) => {
   );
 };
 
+// Модальное окно для рекомендаций
+const RecommendationsModal = ({
+  isOpen,
+  onClose,
+  recommendations,
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+  onApply,
+  loading,
+}) => {
+  if (!isOpen) return null;
+  return (
+    <div className="meal-modal-overlay">
+      <div className="meal-modal-container" style={{ maxWidth: "600px" }}>
+        <div className="meal-modal-header">
+          <h2>Мои рекомендации</h2>
+          <button className="meal-modal-close" onClick={onClose}>
+            ×
+          </button>
+        </div>
+        <div className="meal-modal-content">
+          <div className="rec-filter-row">
+            <div className="rec-date-field">
+              <label>С даты</label>
+              <DatePicker
+                selected={startDate}
+                onChange={onStartDateChange}
+                dateFormat="dd.MM.yyyy"
+                locale={ru}
+                maxDate={endDate || new Date()}
+                placeholderText="Выберите дату"
+                className="rec-datepicker"
+                calendarClassName="rec-calendar"
+              />
+            </div>
+            <div className="rec-date-field">
+              <label>По дату</label>
+              <DatePicker
+                selected={endDate}
+                onChange={onEndDateChange}
+                dateFormat="dd.MM.yyyy"
+                locale={ru}
+                minDate={startDate}
+                maxDate={new Date()}
+                placeholderText="Выберите дату"
+                className="rec-datepicker"
+                calendarClassName="rec-calendar"
+              />
+            </div>
+            <button className="save-btn" onClick={onApply} disabled={loading}>
+              {loading ? "Загрузка..." : "Применить"}
+            </button>
+          </div>
+          {loading ? (
+            <div className="rec-loading-text">Загрузка рекомендаций...</div>
+          ) : recommendations.length > 0 ? (
+            <div className="recommendations-list">
+              {recommendations.map((rec) => (
+                <div key={rec.id} className="recommendation-item">
+                  <p className="recommendation-message">{rec.message}</p>
+                  <span className="recommendation-date">{rec.date}</span>
+                  {rec.is_completed && <span className="completed-badge">✅</span>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="empty-state">Нет рекомендаций за выбранный период</p>
+          )}
+        </div>
+        <div className="meal-modal-footer">
+          <button className="cancel-btn" onClick={onClose}>Закрыть</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function PersonalMeals() {
   const [meals, setMeals] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -60,18 +139,25 @@ export default function PersonalMeals() {
   const [profilePicture, setProfilePicture] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null); // Для уведомлений
   const [selectedDate, setSelectedDate] = useState(new Date());
   const isCurrentDate = selectedDate.toDateString() === new Date().toDateString();
 
-  // Ограничения: сегодня и один месяц назад от сегодня
+  // Рекомендации
+  const [showRecModal, setShowRecModal] = useState(false);
+  const [recData, setRecData] = useState([]);
+  const [recStartDate, setRecStartDate] = useState(null);
+  const [recEndDate, setRecEndDate] = useState(null);
+  const [recLoading, setRecLoading] = useState(false);
+
   const minDate = new Date();
-  minDate.setMonth(minDate.getMonth() - 1);  // изменено с -7 дней на -1 месяц
+  minDate.setMonth(minDate.getMonth() - 1);
   const maxDate = new Date();
 
-  // Простая реализация toast
+  // Простой toast
   const toast = {
-    toast: ({ title, description, variant }) => {
-      console.log(`${variant || "default"}: ${title} - ${description}`);
+    toast: ({ title, description }) => {
+      console.log(`${title} - ${description}`);
     },
   };
 
@@ -102,11 +188,6 @@ export default function PersonalMeals() {
     } else {
       setError(error.message || "Произошла неизвестная ошибка");
     }
-    toast.toast({
-      variant: "destructive",
-      title: "Ошибка",
-      description: error.message,
-    });
   };
 
   const fetchUserProfile = async () => {
@@ -170,10 +251,7 @@ export default function PersonalMeals() {
   const handleSaveMeal = async (newMeal) => {
     try {
       setMeals(prev => [...prev, newMeal].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
-      toast.toast({
-        title: "Успешно",
-        description: "Приём пищи добавлен",
-      });
+      toast.toast({ title: "Успешно", description: "Приём пищи добавлен" });
     } catch (error) {
       handleFetchError(error);
     }
@@ -182,10 +260,7 @@ export default function PersonalMeals() {
   const handleUpdateMeal = async (updatedMeal) => {
     try {
       setMeals(prev => prev.map(meal => meal.id === updatedMeal.id ? updatedMeal : meal));
-      toast.toast({
-        title: "Успешно",
-        description: "Приём пищи обновлён",
-      });
+      toast.toast({ title: "Успешно", description: "Приём пищи обновлён" });
     } catch (error) {
       handleFetchError(error);
     }
@@ -204,13 +279,62 @@ export default function PersonalMeals() {
       }
 
       setMeals(prev => prev.filter(meal => meal.id !== mealId));
-      toast.toast({
-        title: "Успешно",
-        description: "Приём пищи удалён",
-      });
+      toast.toast({ title: "Успешно", description: "Приём пищи удалён" });
     } catch (error) {
       handleFetchError(error);
     }
+  };
+
+  // Генерация рекомендаций – теперь показывает уведомление, а не открывает модальное окно
+  const handleGenerateRecommendations = async () => {
+    try {
+      setRecLoading(true);
+      const res = await fetch(`${API_BASE_URL}/recommendations/generate`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Ошибка генерации рекомендаций");
+      const data = await res.json();
+      if (data.count === 0) {
+        setSuccess({ title: "Рекомендации", description: "Приёмы пищи за вчера отсутствуют. Рекомендации не сгенерированы." });
+      } else {
+        setSuccess({ title: "Рекомендации", description: `Рекомендации успешно сгенерированы (${data.count} шт.)` });
+      }
+      // Через 3 секунды скрываем уведомление
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      handleFetchError(err);
+    } finally {
+      setRecLoading(false);
+    }
+  };
+
+  const fetchRecommendations = async (start, end) => {
+    try {
+      setRecLoading(true);
+      const params = new URLSearchParams();
+      if (start) params.append("start_date", formatDate(start));
+      if (end) params.append("end_date", formatDate(end));
+      const res = await fetch(`${API_BASE_URL}/recommendations/?${params.toString()}`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Ошибка загрузки рекомендаций");
+      const data = await res.json();
+      setRecData(data);
+    } catch (err) {
+      handleFetchError(err);
+    } finally {
+      setRecLoading(false);
+    }
+  };
+
+  const openRecModal = () => {
+    setShowRecModal(true);
+    fetchRecommendations(recStartDate, recEndDate);
+  };
+
+  const applyRecFilter = () => {
+    fetchRecommendations(recStartDate, recEndDate);
   };
 
   const openAddModal = () => setIsAddModalOpen(true);
@@ -229,10 +353,6 @@ export default function PersonalMeals() {
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
         credentials: 'include',
-      });
-      toast.toast({
-        title: "Выход выполнен",
-        description: "Вы успешно вышли из аккаунта",
       });
       window.location.href = "/login";
     } catch (error) {
@@ -262,6 +382,7 @@ export default function PersonalMeals() {
     return translations[category]?.[value] ?? value;
   };
 
+  // ТОЛЬКО при первоначальной загрузке показываем глобальный спиннер
   if (loading && !error) {
     return (
       <div className="full-page-loading">
@@ -326,15 +447,37 @@ export default function PersonalMeals() {
               popperClassName="custom-popper"
             />
           </div>
-          <button
-            onClick={openAddModal}
-            className="personal-meals-add-meal-button"
-            disabled={!isCurrentDate}
-            title={!isCurrentDate ? "Добавление доступно только для текущей даты" : ""}
-          >
-            + Добавить
-          </button>
+          <div className="header-actions">
+            <button
+              onClick={openAddModal}
+              className="personal-meals-add-meal-button"
+              disabled={!isCurrentDate}
+              title={!isCurrentDate ? "Добавление доступно только для текущей даты" : ""}
+            >
+              + Добавить
+            </button>
+            <button
+              onClick={handleGenerateRecommendations}
+              className="personal-meals-rec-btn"
+              disabled={recLoading}
+            >
+              ✨ Получить рекомендации
+            </button>
+            <button
+              onClick={() => { setRecStartDate(null); setRecEndDate(null); openRecModal(); }}
+              className="personal-meals-rec-btn"
+            >
+              📋 Мои рекомендации
+            </button>
+          </div>
         </div>
+
+        {/* Уведомление об успехе/предупреждении */}
+        {success && (
+          <div className="success-toast">
+            {success.description}
+          </div>
+        )}
 
         {error && <ErrorHandler error={error} onClose={() => setError(null)} />}
 
@@ -378,6 +521,18 @@ export default function PersonalMeals() {
           onDelete={handleDelete}
         />
       )}
+
+      <RecommendationsModal
+        isOpen={showRecModal}
+        onClose={() => setShowRecModal(false)}
+        recommendations={recData}
+        startDate={recStartDate}
+        endDate={recEndDate}
+        onStartDateChange={(date) => setRecStartDate(date)}
+        onEndDateChange={(date) => setRecEndDate(date)}
+        onApply={applyRecFilter}
+        loading={recLoading}
+      />
     </motion.div>
   );
 }

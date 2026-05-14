@@ -111,15 +111,23 @@
     background-color: #fff;
 }
 
+/* === Контейнер поиска === */
 .search-results-container {
     margin-top: 8px;
-    height: 200px; /* фиксированная высота, чтобы не прыгало */
-    overflow-y: auto;
+    height: 200px; /* фиксированная высота */
+    overflow-y: auto; /* прокрутка остаётся */
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     background-color: #fff;
     display: flex;
     flex-direction: column;
+    
+    /* Скрываем скроллбар */
+    scrollbar-width: none;          /* Firefox */
+    -ms-overflow-style: none;       /* IE/Edge */
+}
+.search-results-container::-webkit-scrollbar {
+    display: none;                  /* Chrome/Safari */
 }
 
 .search-loading {
@@ -151,6 +159,7 @@
     background-color: #f9fafb;
 }
 
+/* Выбранные продукты */
 .selected-products {
     margin-top: 24px;
     border: 1px solid #e5e7eb;
@@ -247,6 +256,7 @@
     color: white;
 }
 
+/* Футер */
 .meal-modal-footer {
     display: flex;
     justify-content: space-between;
@@ -321,4 +331,19 @@
 .delete-button:hover {
     background-color: #ef4444;
     color: white;
+}
+
+.search-loading-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.rec-loading-text {
+  text-align: center;
+  padding: 1rem;
+  color: #6b7280;
 }

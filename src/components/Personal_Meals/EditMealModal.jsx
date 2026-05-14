@@ -1,8 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./MealModal.css";
 import { API_BASE_URL } from '../../config';
-import LoadingSpinner from "../Default/LoadingSpinner";
 import ErrorHandler from "../Default/ErrorHandler";
 
 const EditMealModal = ({ isOpen, onClose, meal, onUpdate, onDelete }) => {
@@ -26,6 +25,9 @@ const EditMealModal = ({ isOpen, onClose, meal, onUpdate, onDelete }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState(null);
   const [searchTimeout, setSearchTimeout] = useState(null);
+
+  const [recognizing, setRecognizing] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -126,6 +128,44 @@ const EditMealModal = ({ isOpen, onClose, meal, onUpdate, onDelete }) => {
 
   const removeProduct = (id) => {
     setSelectedProducts((prev) => prev.filter((product) => product.id !== id));
+  };
+
+  const handlePhotoRecognition = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setRecognizing(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch(`${API_BASE_URL}/products/recognize-label`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Ошибка распознавания");
+      }
+
+      const recognizedProduct = await response.json();
+      if (!selectedProducts.some((p) => p.id === recognizedProduct.id)) {
+        addProduct({ ...recognizedProduct, weight: 100 });
+      }
+    } catch (err) {
+      console.error("Ошибка распознавания:", err);
+      setError(
+        err.message === "Failed to fetch"
+          ? "Не удалось подключиться к серверу. Проверьте интернет-соединение."
+          : err.message
+      );
+    } finally {
+      setRecognizing(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const handleUpdate = async () => {
@@ -251,14 +291,34 @@ const EditMealModal = ({ isOpen, onClose, meal, onUpdate, onDelete }) => {
 
           <div className="meal-modal-form-group">
             <label>Поиск продуктов</label>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder="Начните вводить название продукта"
-            />
+            <div className="search-row">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Начните вводить название продукта"
+                className="search-input"
+              />
+              <button
+                className="photo-rec-btn"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={recognizing}
+                title="Распознать продукт по фото этикетки"
+              >
+                {recognizing ? "Распознавание..." : "📸"}
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                accept="image/*"
+                onChange={handlePhotoRecognition}
+              />
+            </div>
             <div className="search-results-container">
-              {searchResults.length > 0 ? (
+              {isSearching ? (
+                <div className="search-loading-text">Поиск...</div>
+              ) : searchResults.length > 0 ? (
                 <ul className="search-results">
                   {searchResults.map((product) => (
                     <li key={product.id} onClick={() => addProduct(product)}>
@@ -318,14 +378,14 @@ const EditMealModal = ({ isOpen, onClose, meal, onUpdate, onDelete }) => {
             onClick={handleDelete}
             disabled={isDeleting}
           >
-            {isDeleting ? <LoadingSpinner small white /> : "Удалить"}
+            {isDeleting ? "Удаление..." : "Удалить"}
           </button>
           <div style={{ display: "flex", gap: "8px" }}>
             <button className="cancel-btn" onClick={onClose}>
               Отмена
             </button>
             <button className="save-btn" onClick={handleUpdate} disabled={isSaving}>
-              {isSaving ? <LoadingSpinner small white /> : "Сохранить"}
+              {isSaving ? "Сохранение..." : "Сохранить"}
             </button>
           </div>
         </div>
